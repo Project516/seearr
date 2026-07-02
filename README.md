@@ -1,77 +1,91 @@
 <p align="center">
-<img src="./public/logo_full.svg" alt="Seerr" style="margin: 20px 0;">
+<img src="./public/logo_full.svg" alt="Seearr" style="margin: 20px 0;">
 </p>
 <p align="center">
-<img src="https://github.com/seerr-team/seerr/actions/workflows/release.yml/badge.svg" alt="Seerr Release" />
-<img src="https://github.com/seerr-team/seerr/actions/workflows/ci.yml/badge.svg" alt="Seerr CI">
+<a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr/v3.3.0-blue" alt="Based on"></a>
+<a href="https://github.com/Project516/seearr/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
 </p>
-<p align="center">
-<a href="https://discord.gg/seerr"><img src="https://img.shields.io/discord/783137440809746482" alt="Discord"></a>
-<a href="https://hub.docker.com/r/seerr/seerr"><img src="https://img.shields.io/docker/pulls/seerr/seerr" alt="Docker pulls"></a>
-<a href="https://translate.seerr.dev/engage/seerr/"><img src="https://translate.seerr.dev/widget/seerr/svg-badge.svg" alt="Translation status" /></a>
-<a href="https://github.com/seerr-team/seerr/blob/develop/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
 
-**Seerr** is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: [Jellyfin](https://jellyfin.org), [Plex](https://plex.tv), and [Emby](https://emby.media/). In addition, it integrates with your existing services, such as **[Sonarr](https://sonarr.tv/)**, **[Radarr](https://radarr.video/)**.
+**Seearr** is a fork of [Seerr v3.3.0](https://github.com/seerr-team/seerr) with Jellyfin and Emby removed. It integrates with **[Plex](https://plex.tv)** as the media server and **[Sonarr](https://sonarr.tv/)** / **[Radarr](https://radarr.video/)** for media management.
 
-## Current Features
+Designed for bare-metal self-hosting — no Docker required.
 
-- Full Jellyfin/Emby/Plex integration including authentication with user import & management.
-- Support for **PostgreSQL** and **SQLite** databases.
-- Supports Movies, Shows and Mixed Libraries.
-- Ability to change email addresses for SMTP purposes.
-- Easy integration with your existing services. Currently, Seerr supports Sonarr and Radarr. More to come!
-- Jellyfin/Emby/Plex library scan, to keep track of the titles which are already available.
-- Customizable request system, which allows users to request individual seasons or movies in a friendly, easy-to-use interface.
-- Incredibly simple request management UI. Don't dig through the app to simply approve recent requests!
-- Granular permission system.
-- Support for various notification agents.
-- Mobile-friendly design, for when you need to approve requests on the go!
-- Support for watchlisting & blocklisting media.
+## What's different from Seerr
 
-With more features on the way! Check out our [issue tracker](/../../issues) to see the features which have already been requested.
+- **Jellyfin & Emby removed** — all related code, auth, scanners, settings, and UI stripped out
+- **Plex remains** as the supported media server
+- **No Docker dependency** — run directly on bare metal
+- **Portable** — config and data live in the same directory as the app
 
 ## Getting Started
 
-Check out our documentation for instructions on how to install and run Seerr:
+```bash
+git clone https://github.com/Project516/seearr.git
+cd seearr
+bash setup.sh
+```
 
-https://docs.seerr.dev/getting-started/
+The setup script will:
+1. Check prerequisites (Node.js 22+, pnpm)
+2. Install dependencies and build
+3. Create a default `config/settings.json`
+4. Print instructions to start the server
 
-## Preview
+Then start the server:
 
-<img src="./public/preview.jpg" alt="Seerr application preview" />
+```bash
+NODE_ENV=production PORT=5055 node dist/index.js
+```
 
-## Migrating from Overseerr/Jellyseerr to Seerr
+Open http://localhost:5055 in your browser and complete the setup wizard.
 
-Read our [release announcement](https://docs.seerr.dev/blog/seerr-release) to learn what Seerr means for Jellyseerr and Overseerr users.
+### Environment variables
 
-Please follow our [migration guide](https://docs.seerr.dev/migration-guide) for detailed instructions on migrating from Overseerr or Jellyseerr.
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PORT` | `5055` | HTTP port |
+| `CONFIG_DIRECTORY` | `./config` | Path to config folder |
+| `DB_TYPE` | `sqlite` | `sqlite` or `postgres` |
+| `DB_HOST` | — | PostgreSQL host |
+| `DB_PORT` | `5432` | PostgreSQL port |
+| `DB_USER` | — | PostgreSQL user |
+| `DB_PASS` | — | PostgreSQL password |
+| `DB_NAME` | `seerr` | PostgreSQL database name |
+| `HOST` | — | Listen address (e.g. `0.0.0.0`) |
+| `API_KEY` | — | Override auto-generated API key |
 
-## Support
+## Updating to future upstream releases
 
-- Check out the [Seerr Documentation](https://docs.seerr.dev) before asking for help. Your question might already be in the docs!
-- You can get support on [Discord](https://discord.gg/seerr).
-- You can ask questions in the Help category of our [GitHub Discussions](/../../discussions).
-- Bug reports and feature requests can be submitted via [GitHub Issues](/../../issues).
+This fork tracks upstream seerr. Since it's based on the `v3.3.0` tag with full git history, you can merge upstream releases:
 
-## API Documentation
+```bash
+git remote add upstream https://github.com/seerr-team/seerr.git
+git fetch upstream --tags
+git checkout seearr-v3.3.0
+git merge v3.4.0   # or whatever the latest tag is
+# Resolve conflicts (if any) and commit
+```
 
-You can access the API documentation from your local Seerr install at http://localhost:5055/api-docs
+## Requirements
 
-## Community
+- **Node.js** 22+
+- **pnpm** 10+
+- **SQLite** (default) or **PostgreSQL** (optional)
 
-You can ask questions, share ideas, and more in [GitHub Discussions](/../../discussions).
+## Current Features
 
-If you would like to chat with other members of our growing community, [join the Seerr Discord server](https://discord.gg/seerr)!
+- Plex integration (authentication, user import, library scan)
+- Radarr & Sonarr integration
+- SQLite & PostgreSQL support
+- Movies, TV shows, and mixed libraries
+- Customizable request system (per-season or full)
+- Granular permission system
+- Notification agents (Discord, Telegram, Email, Pushover, etc.)
+- Watchlisting & blocklisting
+- Mobile-friendly UI
+- Full REST API (docs at `/api-docs`)
+- Scheduled jobs (library scans, download sync, availability sync)
 
-Our [Code of Conduct](./CODE_OF_CONDUCT.md) applies to all Seerr community channels.
+## Upstream
 
-## Contributing
-
-You can help improve Seerr too! Check out our [Contribution Guide](./CONTRIBUTING.md) to get started.
-
-## Contributors ✨
-
-[![Contributors](https://opencollective.com/seerr/contributors.svg?width=890)](https://opencollective.com/seerr/#backers)
-
-[![Become a Backer](https://opencollective.com/seerr/backers.svg)](https://opencollective.com/seerr/#backers)
-[![Become a Sponsor](https://opencollective.com/seerr/sponsors.svg)](https://opencollective.com/seerr/#sponsors)
+This project is a fork of [seerr-team/seerr](https://github.com/seerr-team/seerr). All credits to the original Seerr team.
