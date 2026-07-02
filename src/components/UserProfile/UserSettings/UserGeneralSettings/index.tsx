@@ -98,9 +98,7 @@ const UserGeneralSettings = () => {
 
   const UserGeneralSettingsSchema = Yup.object().shape({
     email:
-      // email is required for everybody except non-admin jellyfin users
-      user?.id === 1 ||
-      (user?.userType !== UserType.JELLYFIN && user?.userType !== UserType.EMBY)
+      user?.id === 1
         ? Yup.string()
             .test(
               'email',
@@ -168,8 +166,7 @@ const UserGeneralSettings = () => {
           try {
             await axios.post(`/api/v1/user/${user?.id}/settings/main`, {
               username: values.displayName,
-              email:
-                values.email || user?.jellyfinUsername || user?.plexUsername,
+              email: values.email || user?.plexUsername,
               locale: values.locale,
               discoverRegion: values.discoverRegion,
               streamingRegion: values.streamingRegion,
@@ -251,18 +248,6 @@ const UserGeneralSettings = () => {
                       <Badge badgeType="default">
                         {intl.formatMessage(messages.localuser)}
                       </Badge>
-                    ) : user?.userType === UserType.EMBY ? (
-                      <Badge badgeType="success">
-                        {intl.formatMessage(messages.mediaServerUser, {
-                          mediaServerName: 'Emby',
-                        })}
-                      </Badge>
-                    ) : user?.userType === UserType.JELLYFIN ? (
-                      <Badge badgeType="default">
-                        {intl.formatMessage(messages.mediaServerUser, {
-                          mediaServerName: 'Jellyfin',
-                        })}
-                      </Badge>
                     ) : null}
                   </div>
                 </div>
@@ -291,11 +276,7 @@ const UserGeneralSettings = () => {
                       id="displayName"
                       name="displayName"
                       type="text"
-                      placeholder={
-                        user?.jellyfinUsername ||
-                        user?.plexUsername ||
-                        user?.email
-                      }
+                      placeholder={user?.plexUsername || user?.email}
                     />
                   </div>
                   {errors.displayName &&

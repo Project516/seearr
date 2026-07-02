@@ -1,4 +1,3 @@
-import JellyfinAPI from '@server/api/jellyfin';
 import PlexTvAPI from '@server/api/plextv';
 import { ApiErrorCode } from '@server/constants/error';
 import { MediaServerType } from '@server/constants/server';
@@ -15,13 +14,11 @@ import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
 import { ApiError } from '@server/types/error';
-import { getHostname } from '@server/utils/getHostname';
 import {
   isOwnProfile,
   isOwnProfileOrAdmin,
 } from '@server/utils/profileMiddleware';
 import { Router } from 'express';
-import net from 'net';
 import { Not } from 'typeorm';
 import { canMakePermissionsChange } from '.';
 
@@ -96,7 +93,7 @@ userSettingsRoutes.post<
     const oldEmail = user.email;
     user.username = req.body.username;
     if (user.userType !== UserType.PLEX) {
-      user.email = req.body.email || user.jellyfinUsername || user.email;
+      user.email = req.body.email || user.email;
     }
 
     const existingUser = await userRepository.findOne({
@@ -350,161 +347,6 @@ userSettingsRoutes.delete<{ id: string }>(
       user.plexId = null;
       user.plexUsername = null;
       user.plexToken = null;
-      await userRepository.save(user);
-
-      return res.status(204).send();
-    } catch (e) {
-      return res.status(500).json({ message: e.message });
-    }
-  }
-);
-
-userSettingsRoutes.post<{ username: string; password: string }>(
-  '/linked-accounts/jellyfin',
-  isOwnProfile(),
-  async (req, res) => {
-    const settings = getSettings();
-    const userRepository = getRepository(User);
-
-    if (!req.user) {
-      return res.status(401).json({ code: ApiErrorCode.Unauthorized });
-    }
-    // Make sure jellyfin login is enabled
-    if (
-      settings.main.mediaServerType !== MediaServerType.JELLYFIN &&
-      settings.main.mediaServerType !== MediaServerType.EMBY
-    ) {
-      return res
-        .status(500)
-        .json({ message: 'Jellyfin/Emby login is disabled' });
-    }
-
-    // Do not allow linking of an already linked account
-    if (
-      await userRepository.exist({
-        where: { jellyfinUsername: req.body.username },
-      })
-    ) {
-      return res.status(422).json({
-        message: 'The specified account is already linked to a Seerr user',
-      });
-    }
-
-    const hostname = getHostname();
-    const deviceId = Buffer.from(
-      req.user?.id === 1 ? 'BOT_seerr' : `BOT_seerr_${req.user.username ?? ''}`
-    ).toString('base64');
-
-    const jellyfinserver = new JellyfinAPI(hostname, undefined, deviceId);
-
-    const ip = req.ip;
-    let clientIp: string | undefined;
-    if (ip) {
-      if (net.isIPv4(ip)) {
-        clientIp = ip;
-      } else if (net.isIPv6(ip)) {
-        clientIp = ip.startsWith('::ffff:') ? ip.substring(7) : ip;
-      }
-    }
-
-    try {
-      const account = await jellyfinserver.login(
-        req.body.username,
-        req.body.password,
-        clientIp
-      );
-
-      // Do not allow linking of an already linked account
-      if (
-        await userRepository.exist({
-          where: { jellyfinUserId: account.User.Id },
-        })
-      ) {
-        return res.status(422).json({
-          message: 'The specified account is already linked to a Seerr user',
-        });
-      }
-
-      const user = req.user;
-
-      // valid jellyfin user found, link to current user
-      user.userType =
-        settings.main.mediaServerType === MediaServerType.EMBY
-          ? UserType.EMBY
-          : UserType.JELLYFIN;
-      user.jellyfinUserId = account.User.Id;
-      user.jellyfinUsername = account.User.Name;
-      user.jellyfinAuthToken = account.AccessToken;
-      user.jellyfinDeviceId = deviceId;
-      await userRepository.save(user);
-
-      return res.status(204).send();
-    } catch (e) {
-      logger.error('Failed to link account to user.', {
-        label: 'API',
-        ip: req.ip,
-        error: e,
-      });
-      if (
-        e instanceof ApiError &&
-        e.errorCode === ApiErrorCode.InvalidCredentials
-      ) {
-        return res.status(401).json({ code: e.errorCode });
-      }
-
-      return res.status(500).send();
-    }
-  }
-);
-
-userSettingsRoutes.delete<{ id: string }>(
-  '/linked-accounts/jellyfin',
-  isOwnProfileOrAdmin(),
-  async (req, res) => {
-    const settings = getSettings();
-    const userRepository = getRepository(User);
-
-    // Make sure jellyfin login is enabled
-    if (
-      settings.main.mediaServerType !== MediaServerType.JELLYFIN &&
-      settings.main.mediaServerType !== MediaServerType.EMBY
-    ) {
-      return res
-        .status(500)
-        .json({ message: 'Jellyfin/Emby login is disabled' });
-    }
-
-    try {
-      const user = await userRepository
-        .createQueryBuilder('user')
-        .addSelect('user.password')
-        .where({
-          id: Number(req.params.id),
-        })
-        .getOne();
-
-      if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
-      }
-
-      if (user.id === 1) {
-        return res.status(400).json({
-          message:
-            'Cannot unlink media server accounts for the primary administrator.',
-        });
-      }
-
-      if (!user.email || !user.password) {
-        return res.status(400).json({
-          message: 'User does not have a local email or password set.',
-        });
-      }
-
-      user.userType = UserType.LOCAL;
-      user.jellyfinUserId = null;
-      user.jellyfinUsername = null;
-      user.jellyfinAuthToken = null;
-      user.jellyfinDeviceId = null;
       await userRepository.save(user);
 
       return res.status(204).send();

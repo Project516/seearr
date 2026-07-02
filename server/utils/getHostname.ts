@@ -1,5 +1,3 @@
-import { getSettings } from '@server/lib/settings';
-
 interface HostnameParams {
   useSsl?: boolean;
   ip?: string;
@@ -8,9 +6,12 @@ interface HostnameParams {
 }
 
 export const getHostname = (params?: HostnameParams): string => {
-  const settings = params ? params : getSettings().jellyfin;
-
-  const { useSsl, ip, port, urlBase } = settings;
+  const { useSsl, ip, port, urlBase } = params ?? {
+    useSsl: false,
+    ip: '',
+    port: 0,
+    urlBase: '',
+  };
 
   const hostname = `${useSsl ? 'https' : 'http'}://${ip}:${port}${urlBase}`;
 

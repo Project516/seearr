@@ -1,6 +1,4 @@
-import EmbyLogo from '@app/assets/services/emby.svg';
 import ImdbLogo from '@app/assets/services/imdb.svg';
-import JellyfinLogo from '@app/assets/services/jellyfin.svg';
 import LetterboxdLogo from '@app/assets/services/letterboxd.svg';
 import PlexLogo from '@app/assets/services/plex.svg';
 import RTLogo from '@app/assets/services/rt.svg';
@@ -36,23 +34,17 @@ const ExternalLinkBlock = ({
 
   return (
     <div className="flex w-full items-center justify-center space-x-5">
-      {mediaUrl && (
-        <a
-          href={mediaUrl}
-          className="w-12 opacity-50 transition duration-300 hover:opacity-100"
-          target="_blank"
-          rel="noreferrer"
-        >
-          {settings.currentSettings.mediaServerType === MediaServerType.PLEX ? (
+      {mediaUrl &&
+        settings.currentSettings.mediaServerType === MediaServerType.PLEX && (
+          <a
+            href={mediaUrl}
+            className="w-12 opacity-50 transition duration-300 hover:opacity-100"
+            target="_blank"
+            rel="noreferrer"
+          >
             <PlexLogo />
-          ) : settings.currentSettings.mediaServerType ===
-            MediaServerType.EMBY ? (
-            <EmbyLogo />
-          ) : (
-            <JellyfinLogo />
-          )}
-        </a>
-      )}
+          </a>
+        )}
       {tmdbId && (
         <a
           href={`https://www.themoviedb.org/${mediaType}/${tmdbId}?language=${locale}`}

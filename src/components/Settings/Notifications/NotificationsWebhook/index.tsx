@@ -40,7 +40,7 @@ const defaultPayload = {
     imdbId: '{{media_imdbid}}',
     tmdbId: '{{media_tmdbid}}',
     tvdbId: '{{media_tvdbid}}',
-    jellyfinMediaId: '{{media_jellyfinMediaId}}',
+
     status: '{{media_status}}',
     status4k: '{{media_status4k}}',
   },
@@ -49,7 +49,6 @@ const defaultPayload = {
     requestedBy_email: '{{requestedBy_email}}',
     requestedBy_username: '{{requestedBy_username}}',
     requestedBy_avatar: '{{requestedBy_avatar}}',
-    requestedBy_jellyfinUserId: '{{requestedBy_jellyfinUserId}}',
     requestedBy_settings_discordIds: '{{requestedBy_settings_discordIds}}',
     requestedBy_settings_telegramChatId:
       '{{requestedBy_settings_telegramChatId}}',

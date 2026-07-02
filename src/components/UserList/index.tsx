@@ -29,7 +29,6 @@ import {
   PencilIcon,
   UserPlusIcon,
 } from '@heroicons/react/24/solid';
-import { MediaServerType } from '@server/constants/server';
 import type { UserResultsResponse } from '@server/interfaces/api/userInterfaces';
 import { hasPermission } from '@server/lib/permissions';
 import axios from 'axios';
@@ -41,7 +40,6 @@ import { useIntl } from 'react-intl';
 import useSWR from 'swr';
 import validator from 'validator';
 import * as Yup from 'yup';
-import JellyfinImportModal from './JellyfinImportModal';
 
 const messages = defineMessages('components.UserList', {
   users: 'Users',
@@ -592,25 +590,13 @@ const UserList = () => {
         leaveTo="opacity-0"
         show={showImportModal}
       >
-        {settings.currentSettings.mediaServerType === MediaServerType.PLEX ? (
-          <PlexImportModal
-            onCancel={() => setShowImportModal(false)}
-            onComplete={() => {
-              setShowImportModal(false);
-              revalidate();
-            }}
-          />
-        ) : (
-          <JellyfinImportModal
-            onCancel={() => setShowImportModal(false)}
-            onComplete={() => {
-              setShowImportModal(false);
-              revalidate();
-            }}
-          >
-            {data.pageInfo.results}
-          </JellyfinImportModal>
-        )}
+        <PlexImportModal
+          onCancel={() => setShowImportModal(false)}
+          onComplete={() => {
+            setShowImportModal(false);
+            revalidate();
+          }}
+        />
       </Transition>
 
       <div className="flex flex-col justify-between lg:flex-row lg:items-end">
@@ -632,19 +618,9 @@ const UserList = () => {
             >
               <InboxArrowDownIcon />
               <span>
-                {settings.currentSettings.mediaServerType ===
-                MediaServerType.EMBY
-                  ? intl.formatMessage(messages.importfrommediaserver, {
-                      mediaServerName: 'Emby',
-                    })
-                  : settings.currentSettings.mediaServerType ===
-                      MediaServerType.PLEX
-                    ? intl.formatMessage(messages.importfrommediaserver, {
-                        mediaServerName: 'Plex',
-                      })
-                    : intl.formatMessage(messages.importfrommediaserver, {
-                        mediaServerName: 'Jellyfin',
-                      })}
+                {intl.formatMessage(messages.importfrommediaserver, {
+                  mediaServerName: 'Plex',
+                })}
               </span>
             </Button>
           </div>
@@ -804,16 +780,10 @@ const UserList = () => {
                       className="text-base font-bold leading-5 transition duration-300 hover:underline"
                       data-testid="user-list-username-link"
                     >
-                      {user.username ||
-                        user.jellyfinUsername ||
-                        user.plexUsername ||
-                        user.email}
+                      {user.username || user.plexUsername || user.email}
                     </Link>
-                    {(
-                      user.username ||
-                      user.jellyfinUsername ||
-                      user.plexUsername
-                    )?.toLowerCase() !== user.email && (
+                    {(user.username || user.plexUsername)?.toLowerCase() !==
+                      user.email && (
                       <div className="text-sm leading-5 text-gray-300">
                         {user.email}
                       </div>
@@ -845,18 +815,6 @@ const UserList = () => {
                 ) : user.userType === UserType.LOCAL ? (
                   <Badge badgeType="default">
                     {intl.formatMessage(messages.localuser)}
-                  </Badge>
-                ) : user.userType === UserType.EMBY ? (
-                  <Badge badgeType="success">
-                    {intl.formatMessage(messages.mediaServerUser, {
-                      mediaServerName: 'Emby',
-                    })}
-                  </Badge>
-                ) : user.userType === UserType.JELLYFIN ? (
-                  <Badge badgeType="default">
-                    {intl.formatMessage(messages.mediaServerUser, {
-                      mediaServerName: 'Jellyfin',
-                    })}
                   </Badge>
                 ) : null}
               </Table.TD>

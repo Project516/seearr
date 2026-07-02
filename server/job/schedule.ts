@@ -4,10 +4,7 @@ import availabilitySync from '@server/lib/availabilitySync';
 import downloadTracker from '@server/lib/downloadtracker';
 import ImageProxy from '@server/lib/imageproxy';
 import refreshToken from '@server/lib/refreshToken';
-import {
-  jellyfinFullScanner,
-  jellyfinRecentScanner,
-} from '@server/lib/scanners/jellyfin';
+
 import { plexFullScanner, plexRecentScanner } from '@server/lib/scanners/plex';
 import { radarrScanner } from '@server/lib/scanners/radarr';
 import { sonarrScanner } from '@server/lib/scanners/sonarr';
@@ -104,46 +101,6 @@ export const startJobs = (): void => {
           });
         });
       }),
-    });
-  } else if (
-    mediaServerType === MediaServerType.JELLYFIN ||
-    mediaServerType === MediaServerType.EMBY
-  ) {
-    // Run recently added jellyfin sync every 5 minutes
-    scheduledJobs.push({
-      id: 'jellyfin-recently-added-scan',
-      name: 'Jellyfin Recently Added Scan',
-      type: 'process',
-      interval: 'minutes',
-      cronSchedule: jobs['jellyfin-recently-added-scan'].schedule,
-      job: schedule.scheduleJob(
-        jobs['jellyfin-recently-added-scan'].schedule,
-        () => {
-          logger.info('Starting scheduled job: Jellyfin Recently Added Scan', {
-            label: 'Jobs',
-          });
-          jellyfinRecentScanner.run();
-        }
-      ),
-      running: () => jellyfinRecentScanner.status().running,
-      cancelFn: () => jellyfinRecentScanner.cancel(),
-    });
-
-    // Run full jellyfin sync every 24 hours
-    scheduledJobs.push({
-      id: 'jellyfin-full-scan',
-      name: 'Jellyfin Full Library Scan',
-      type: 'process',
-      interval: 'hours',
-      cronSchedule: jobs['jellyfin-full-scan'].schedule,
-      job: schedule.scheduleJob(jobs['jellyfin-full-scan'].schedule, () => {
-        logger.info('Starting scheduled job: Jellyfin Full Scan', {
-          label: 'Jobs',
-        });
-        jellyfinFullScanner.run();
-      }),
-      running: () => jellyfinFullScanner.status().running,
-      cancelFn: () => jellyfinFullScanner.cancel(),
     });
   }
 

@@ -1,6 +1,5 @@
 import Button from '@app/components/Common/Button';
 import PlexLoginButton from '@app/components/Login/PlexLoginButton';
-import JellyfinSetup from '@app/components/Setup/JellyfinSetup';
 import { useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
 import { MediaServerType } from '@server/constants/server';
@@ -12,20 +11,16 @@ const messages = defineMessages('components.Setup', {
   welcome: 'Welcome to Seerr',
   signinMessage: 'Get started by signing in',
   signin: 'Sign in to your account',
-  signinWithJellyfin: 'Enter your Jellyfin details',
-  signinWithEmby: 'Enter your Emby details',
   signinWithPlex: 'Enter your Plex details',
   back: 'Go back',
 });
 
 interface LoginWithMediaServerProps {
-  serverType: MediaServerType;
   onCancel: () => void;
   onComplete: () => void;
 }
 
 const SetupLogin: React.FC<LoginWithMediaServerProps> = ({
-  serverType,
   onCancel,
   onComplete,
 }) => {
@@ -71,46 +66,22 @@ const SetupLogin: React.FC<LoginWithMediaServerProps> = ({
         <FormattedMessage {...messages.signin} />
       </div>
       <div className="mb-2 flex justify-center pb-6 text-sm">
-        {serverType === MediaServerType.JELLYFIN ? (
-          <FormattedMessage {...messages.signinWithJellyfin} />
-        ) : serverType === MediaServerType.EMBY ? (
-          <FormattedMessage {...messages.signinWithEmby} />
-        ) : (
-          <FormattedMessage {...messages.signinWithPlex} />
-        )}
+        <FormattedMessage {...messages.signinWithPlex} />
       </div>
-      {serverType === MediaServerType.PLEX && (
-        <>
-          <div className="flex justify-center bg-black/30 px-10 py-8">
-            <PlexLoginButton
-              large
-              onAuthToken={(authToken) => {
-                setMediaServerType(MediaServerType.PLEX);
-                setAuthToken(authToken);
-              }}
-            />
-          </div>
-          <div className="mt-4">
-            <Button buttonType="default" onClick={() => onCancel()}>
-              <FormattedMessage {...messages.back} />
-            </Button>
-          </div>
-        </>
-      )}
-      {serverType === MediaServerType.JELLYFIN && (
-        <JellyfinSetup
-          revalidate={revalidate}
-          serverType={serverType}
-          onCancel={onCancel}
+      <div className="flex justify-center bg-black/30 px-10 py-8">
+        <PlexLoginButton
+          large
+          onAuthToken={(authToken) => {
+            setMediaServerType(MediaServerType.PLEX);
+            setAuthToken(authToken);
+          }}
         />
-      )}
-      {serverType === MediaServerType.EMBY && (
-        <JellyfinSetup
-          revalidate={revalidate}
-          serverType={serverType}
-          onCancel={onCancel}
-        />
-      )}
+      </div>
+      <div className="mt-4">
+        <Button buttonType="default" onClick={() => onCancel()}>
+          <FormattedMessage {...messages.back} />
+        </Button>
+      </div>
     </div>
   );
 };

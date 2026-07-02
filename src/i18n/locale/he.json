@@ -293,7 +293,6 @@
   "components.Layout.Sidebar.browsemovies": "סרטים",
   "components.Layout.UserWarnings.emailInvalid": "כתובת מייל אינה תקינה.",
   "components.Layout.VersionStatus.commitsbehind": "{commitsBehind} {commitsBehind, plural, one {commit} other {commits}} מאחור",
-  "components.Login.signinwithjellyfin": "שימוש בחשבון {mediaServerName}",
   "components.Login.validationhostformat": "נדרש קישור תקין",
   "components.ManageSlideOver.manageModalClearMediaWarning": "* כל הנתונים שלך ל-{mediaType}, כולל בקשות, ימחקו. אם זה קיים בספרייה של {mediaServerName}, זה יצור אותה מחדש בסריקה הבאה.",
   "components.ManageSlideOver.markallseasons4kavailable": "סמן את כל העונות כזמינות ב-4K",

@@ -4,7 +4,6 @@ import useSettings from '@app/hooks/useSettings';
 import defineMessages from '@app/utils/defineMessages';
 import { ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/solid';
-import { MediaServerType } from '@server/constants/server';
 import axios from 'axios';
 import { Field, Form, Formik } from 'formik';
 import Link from 'next/link';
@@ -19,8 +18,6 @@ const messages = defineMessages('components.Login', {
   password: 'Password',
   validationemailrequired: 'You must provide a valid email address',
   validationpasswordrequired: 'You must provide a password',
-  jellyfinLocalLoginHint:
-    "If you haven't set an email address in your profile, use your {mediaServerName} username instead.",
   loginerror: 'Something went wrong while trying to sign in.',
   credentialerror: 'The email address or password is incorrect.',
   tipEmailHasTrailingWhitespace: 'The email ends with whitespace',
@@ -115,20 +112,6 @@ const LocalLogin = ({ revalidate }: LocalLoginProps) => {
                     typeof errors.email === 'string' && (
                       <div className="error">{errors.email}</div>
                     )}
-                  {(settings.currentSettings.mediaServerType ===
-                    MediaServerType.JELLYFIN ||
-                    settings.currentSettings.mediaServerType ===
-                      MediaServerType.EMBY) && (
-                    <div className="mt-1 text-xs text-gray-400">
-                      {intl.formatMessage(messages.jellyfinLocalLoginHint, {
-                        mediaServerName:
-                          settings.currentSettings.mediaServerType ===
-                          MediaServerType.JELLYFIN
-                            ? 'Jellyfin'
-                            : 'Emby',
-                      })}
-                    </div>
-                  )}
                 </div>
                 <div className="mb-2 mt-1">
                   <div className="form-input-field">

@@ -44,18 +44,6 @@ export interface PlexSettings {
   webAppUrl?: string;
 }
 
-export interface JellyfinSettings {
-  name: string;
-  ip: string;
-  port: number;
-  useSsl?: boolean;
-  urlBase?: string;
-  externalHostname?: string;
-  jellyfinForgotPasswordUrl?: string;
-  libraries: Library[];
-  serverId: string;
-  apiKey: string;
-}
 export interface TautulliSettings {
   hostname?: string;
   port?: number;
@@ -201,9 +189,6 @@ interface FullPublicSettings extends PublicSettings {
   streamingRegion: string;
   originalLanguage: string;
   mediaServerType: number;
-  jellyfinExternalHost?: string;
-  jellyfinForgotPasswordUrl?: string;
-  jellyfinServerName?: string;
   partialRequestsEnabled: boolean;
   enableSpecialEpisodes: boolean;
   cacheImages: boolean;
@@ -362,8 +347,6 @@ export type JobId =
   | 'sonarr-scan'
   | 'download-sync'
   | 'download-sync-reset'
-  | 'jellyfin-recently-added-scan'
-  | 'jellyfin-full-scan'
   | 'image-cache-cleanup'
   | 'availability-sync'
   | 'process-blocklisted-tags';
@@ -375,7 +358,6 @@ export interface AllSettings {
   vapidPrivate: string;
   main: MainSettings;
   plex: PlexSettings;
-  jellyfin: JellyfinSettings;
   tautulli: TautulliSettings;
   radarr: RadarrSettings[];
   sonarr: SonarrSettings[];
@@ -435,18 +417,6 @@ class Settings {
         port: 32400,
         useSsl: false,
         libraries: [],
-      },
-      jellyfin: {
-        name: '',
-        ip: '',
-        port: 8096,
-        useSsl: false,
-        urlBase: '',
-        externalHostname: '',
-        jellyfinForgotPasswordUrl: '',
-        libraries: [],
-        serverId: '',
-        apiKey: '',
       },
       tautulli: {},
       metadataSettings: {
@@ -593,12 +563,6 @@ class Settings {
         'download-sync-reset': {
           schedule: '0 0 1 * * *',
         },
-        'jellyfin-recently-added-scan': {
-          schedule: '0 */5 * * * *',
-        },
-        'jellyfin-full-scan': {
-          schedule: '0 0 3 * * *',
-        },
         'image-cache-cleanup': {
           schedule: '0 0 5 * * *',
         },
@@ -648,14 +612,6 @@ class Settings {
 
   set plex(data: PlexSettings) {
     this.data.plex = mergeSettings(this.data.plex, data);
-  }
-
-  get jellyfin(): JellyfinSettings {
-    return this.data.jellyfin;
-  }
-
-  set jellyfin(data: JellyfinSettings) {
-    this.data.jellyfin = mergeSettings(this.data.jellyfin, data);
   }
 
   get tautulli(): TautulliSettings {
@@ -710,8 +666,6 @@ class Settings {
       hideBlocklisted: this.data.main.hideBlocklisted,
       localLogin: this.data.main.localLogin,
       mediaServerLogin: this.data.main.mediaServerLogin,
-      jellyfinExternalHost: this.data.jellyfin.externalHostname,
-      jellyfinForgotPasswordUrl: this.data.jellyfin.jellyfinForgotPasswordUrl,
       movie4kEnabled: this.data.radarr.some(
         (radarr) => radarr.is4k && radarr.isDefault
       ),

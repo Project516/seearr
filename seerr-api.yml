@@ -108,9 +108,7 @@ components:
         plexToken:
           type: string
           readOnly: true
-        jellyfinAuthToken:
-          type: string
-          readOnly: true
+
         userType:
           type: integer
           example: 1
@@ -470,51 +468,8 @@ components:
         - provides
         - owned
         - connection
-    JellyfinLibrary:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-          example: Movies
-        enabled:
-          type: boolean
-          example: false
-      required:
-        - id
-        - name
-        - enabled
-    JellyfinSettings:
-      type: object
-      properties:
-        name:
-          type: string
-          example: 'Main Server'
-          readOnly: true
-        hostname:
-          type: string
-          example: 'http://my.jellyfin.host'
-        externalHostname:
-          type: string
-          example: 'http://my.jellyfin.host'
-        jellyfinForgotPasswordUrl:
-          type: string
-          example: 'http://my.jellyfin.host/web/index.html#!/forgotpassword.html'
-        adminUser:
-          type: string
-          example: 'admin'
-        adminPass:
-          type: string
-          example: 'mypassword'
-        libraries:
-          type: array
-          readOnly: true
-          items:
-            $ref: '#/components/schemas/JellyfinLibrary'
-        serverID:
-          type: string
-          readOnly: true
+
+
     MetadataSettings:
       type: object
       properties:
@@ -2269,161 +2224,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/MainSettings'
-  /settings/jellyfin:
-    get:
-      summary: Get Jellyfin settings
-      description: Retrieves current Jellyfin settings.
-      tags:
-        - settings
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JellyfinSettings'
-    post:
-      summary: Update Jellyfin settings
-      description: Updates Jellyfin settings with the provided values.
-      tags:
-        - settings
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/JellyfinSettings'
-      responses:
-        '200':
-          description: 'Values were successfully updated'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JellyfinSettings'
-  /settings/jellyfin/library:
-    get:
-      summary: Get Jellyfin libraries
-      description: Returns a list of Jellyfin libraries in a JSON array.
-      tags:
-        - settings
-      parameters:
-        - in: query
-          name: sync
-          description: Syncs the current libraries with the current Jellyfin server
-          schema:
-            type: string
-            nullable: true
-        - in: query
-          name: enable
-          explode: false
-          allowReserved: true
-          description: Comma separated list of libraries to enable. Any libraries not passed will be disabled!
-          schema:
-            type: string
-            nullable: true
-      responses:
-        '200':
-          description: 'Jellyfin libraries returned'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/JellyfinLibrary'
-  /settings/jellyfin/users:
-    get:
-      summary: Get Jellyfin Users
-      description: Returns a list of Jellyfin Users in a JSON array.
-      tags:
-        - settings
-        - users
-      responses:
-        '200':
-          description: Jellyfin users returned
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    username:
-                      type: string
-                    id:
-                      type: string
-                    thumb:
-                      type: string
-                    email:
-                      type: string
-  /settings/jellyfin/sync:
-    get:
-      summary: Get status of full Jellyfin library sync
-      description: Returns sync progress in a JSON array.
-      tags:
-        - settings
-      responses:
-        '200':
-          description: Status of Jellyfin sync
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  running:
-                    type: boolean
-                    example: false
-                  progress:
-                    type: number
-                    example: 0
-                  total:
-                    type: number
-                    example: 100
-                  currentLibrary:
-                    $ref: '#/components/schemas/JellyfinLibrary'
-                  libraries:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/JellyfinLibrary'
-    post:
-      summary: Start full Jellyfin library sync
-      description: Runs a full Jellyfin library sync and returns the progress in a JSON array.
-      tags:
-        - settings
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                cancel:
-                  type: boolean
-                  example: false
-                start:
-                  type: boolean
-                  example: false
-      responses:
-        '200':
-          description: Status of Jellyfin sync
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  running:
-                    type: boolean
-                    example: false
-                  progress:
-                    type: number
-                    example: 0
-                  total:
-                    type: number
-                    example: 100
-                  currentLibrary:
-                    $ref: '#/components/schemas/JellyfinLibrary'
-                  libraries:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/JellyfinLibrary'
+
+
+
+
   /settings/plex:
     get:
       summary: Get Plex settings
@@ -3960,40 +3764,7 @@ paths:
                   type: string
               required:
                 - authToken
-  /auth/jellyfin:
-    post:
-      summary: Sign in using a Jellyfin username and password
-      description: Takes the user's username and password to log the user in. Generates a session cookie for use in further requests. If the user does not exist, and there are no other users, then a user will be created with full admin privileges. If a user logs in with access to the Jellyfin server, they will also have an account created, but without any permissions.
-      security: []
-      tags:
-        - auth
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                password:
-                  type: string
-                hostname:
-                  type: string
-                email:
-                  type: string
-                serverType:
-                  type: number
-              required:
-                - username
-                - password
+
   /auth/local:
     post:
       summary: Sign in using a local account
@@ -4247,35 +4018,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/User'
-  /user/import-from-jellyfin:
-    post:
-      summary: Import all users from Jellyfin
-      description: |
-        Fetches and imports users from the Jellyfin server.
 
-        Requires the `MANAGE_USERS` permission.
-      tags:
-        - users
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                jellyfinUserIds:
-                  type: array
-                  items:
-                    type: string
-      responses:
-        '201':
-          description: A list of the newly created users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/User'
   /user/registerPushSubscription:
     post:
       summary: Register a web push /user/registerPushSubscription
@@ -4451,29 +4194,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
-  /user/jellyfin/{jellyfinUserId}:
-    get:
-      summary: Get user by Jellyfin user ID
-      description: |
-        Retrieves user details by Jellyfin user ID in a JSON object. Returns filtered data based on the caller's permissions.
-      tags:
-        - users
-      parameters:
-        - in: path
-          name: jellyfinUserId
-          required: true
-          schema:
-            type: string
-          description: The Jellyfin user ID (32-character hexadecimal string)
-      responses:
-        '200':
-          description: User details in JSON
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          description: User not found
+
   /user/{userId}/requests:
     get:
       summary: Get requests for a specific user
@@ -5107,56 +4828,7 @@ paths:
           description: Unlink request invalid
         '404':
           description: User does not exist
-  /user/{userId}/settings/linked-accounts/jellyfin:
-    post:
-      summary: Link the provided Jellyfin account to the current user
-      description: Logs in to Jellyfin with the provided credentials, then links the associated Jellyfin account with the user's account. Users can only link external accounts to their own account.
-      tags:
-        - users
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: number
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                username:
-                  type: string
-                  example: 'Mr User'
-                password:
-                  type: string
-                  example: 'supersecret'
-      responses:
-        '204':
-          description: Linking account succeeded
-        '403':
-          description: Invalid credentials
-        '422':
-          description: Account already linked to a user
-    delete:
-      summary: Remove the linked Jellyfin account for a user
-      description: Removes the linked Jellyfin account for a specific user. Requires `MANAGE_USERS` permission if editing other users.
-      tags:
-        - users
-      parameters:
-        - in: path
-          name: userId
-          required: true
-          schema:
-            type: number
-      responses:
-        '204':
-          description: Unlinking account succeeded
-        '400':
-          description: Unlink request invalid
-        '404':
-          description: User does not exist
+
   /user/{userId}/settings/notifications:
     get:
       summary: Get notification settings for a user

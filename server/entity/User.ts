@@ -45,8 +45,6 @@ export class User {
     'plexId',
     'password',
     'resetPasswordGuid',
-    'jellyfinDeviceId',
-    'jellyfinAuthToken',
     'plexToken',
     'settings',
   ];
@@ -68,9 +66,6 @@ export class User {
   @Column({ type: 'varchar', nullable: true })
   public plexUsername?: string | null;
 
-  @Column({ type: 'varchar', nullable: true })
-  public jellyfinUsername?: string | null;
-
   @Column({ nullable: true })
   public username?: string;
 
@@ -88,15 +83,6 @@ export class User {
 
   @Column({ type: 'integer', nullable: true, select: true })
   public plexId?: number | null;
-
-  @Column({ type: 'varchar', nullable: true })
-  public jellyfinUserId?: string | null;
-
-  @Column({ type: 'varchar', nullable: true, select: false })
-  public jellyfinDeviceId?: string | null;
-
-  @Column({ type: 'varchar', nullable: true, select: false })
-  public jellyfinAuthToken?: string | null;
 
   @Column({ type: 'varchar', nullable: true, select: false })
   public plexToken?: string | null;
@@ -266,8 +252,7 @@ export class User {
 
   @AfterLoad()
   public setDisplayName(): void {
-    this.displayName =
-      this.username || this.plexUsername || this.jellyfinUsername || this.email;
+    this.displayName = this.username || this.plexUsername || this.email;
   }
 
   public async getQuota(): Promise<QuotaResponse> {

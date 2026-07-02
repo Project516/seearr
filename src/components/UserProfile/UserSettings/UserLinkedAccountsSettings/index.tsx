@@ -1,5 +1,3 @@
-import EmbyLogo from '@app/assets/services/emby-icon-only.svg';
-import JellyfinLogo from '@app/assets/services/jellyfin-icon.svg';
 import PlexLogo from '@app/assets/services/plex.svg';
 import Alert from '@app/components/Common/Alert';
 import ConfirmButton from '@app/components/Common/ConfirmButton';
@@ -17,7 +15,6 @@ import { useRouter } from 'next/router';
 import { useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import useSWR from 'swr';
-import LinkJellyfinModal from './LinkJellyfinModal';
 
 const messages = defineMessages(
   'components.UserProfile.UserSettings.UserLinkedAccountsSettings',
@@ -40,8 +37,6 @@ const plexOAuth = new PlexOAuth();
 
 enum LinkedAccountType {
   Plex = 'Plex',
-  Jellyfin = 'Jellyfin',
-  Emby = 'Emby',
 }
 
 type LinkedAccount = {
@@ -62,7 +57,6 @@ const UserLinkedAccountsSettings = () => {
   const { data: passwordInfo } = useSWR<{ hasPassword: boolean }>(
     user ? `/api/v1/user/${user?.id}/settings/password` : null
   );
-  const [showJellyfinModal, setShowJellyfinModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const applicationName = settings.currentSettings.applicationTitle;
@@ -74,16 +68,6 @@ const UserLinkedAccountsSettings = () => {
       accounts.push({
         type: LinkedAccountType.Plex,
         username: user.plexUsername,
-      });
-    if (user.userType === UserType.EMBY && user.jellyfinUsername)
-      accounts.push({
-        type: LinkedAccountType.Emby,
-        username: user.jellyfinUsername,
-      });
-    if (user.userType === UserType.JELLYFIN && user.jellyfinUsername)
-      accounts.push({
-        type: LinkedAccountType.Jellyfin,
-        username: user.jellyfinUsername,
       });
     return accounts;
   }, [user]);
@@ -125,20 +109,6 @@ const UserLinkedAccountsSettings = () => {
       hide:
         settings.currentSettings.mediaServerType !== MediaServerType.PLEX ||
         accounts.some((a) => a.type === LinkedAccountType.Plex),
-    },
-    {
-      name: 'Jellyfin',
-      action: () => setShowJellyfinModal(true),
-      hide:
-        settings.currentSettings.mediaServerType !== MediaServerType.JELLYFIN ||
-        accounts.some((a) => a.type === LinkedAccountType.Jellyfin),
-    },
-    {
-      name: 'Emby',
-      action: () => setShowJellyfinModal(true),
-      hide:
-        settings.currentSettings.mediaServerType !== MediaServerType.EMBY ||
-        accounts.some((a) => a.type === LinkedAccountType.Emby),
     },
   ].filter((l) => !l.hide);
 
@@ -217,15 +187,9 @@ const UserLinkedAccountsSettings = () => {
               className="flex items-center gap-4 overflow-hidden rounded-lg bg-gray-800/50 px-4 py-5 shadow ring-1 ring-gray-700 sm:p-6"
             >
               <div className="w-12">
-                {acct.type === LinkedAccountType.Plex ? (
-                  <div className="flex aspect-square h-full items-center justify-center rounded-full bg-neutral-800">
-                    <PlexLogo className="w-9" />
-                  </div>
-                ) : acct.type === LinkedAccountType.Emby ? (
-                  <EmbyLogo />
-                ) : (
-                  <JellyfinLogo />
-                )}
+                <div className="flex aspect-square h-full items-center justify-center rounded-full bg-neutral-800">
+                  <PlexLogo className="w-9" />
+                </div>
               </div>
               <div>
                 <div className="truncate text-sm font-bold text-gray-300">
@@ -239,9 +203,7 @@ const UserLinkedAccountsSettings = () => {
               {enableMediaServerUnlink && (
                 <ConfirmButton
                   onClick={() => {
-                    deleteRequest(
-                      acct.type === LinkedAccountType.Plex ? 'plex' : 'jellyfin'
-                    );
+                    deleteRequest('plex');
                   }}
                   confirmText={intl.formatMessage(globalMessages.areyousure)}
                 >
@@ -259,15 +221,6 @@ const UserLinkedAccountsSettings = () => {
           </h3>
         </div>
       )}
-
-      <LinkJellyfinModal
-        show={showJellyfinModal}
-        onClose={() => setShowJellyfinModal(false)}
-        onSave={() => {
-          setShowJellyfinModal(false);
-          revalidateUser();
-        }}
-      />
     </>
   );
 };

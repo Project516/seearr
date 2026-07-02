@@ -1181,7 +1181,7 @@
   "components.Settings.RadarrModal.enableSearchHelp": "Activa automáticamente una búsqueda en Radarr cuando se aprueba una solicitud.",
   "components.Settings.RadarrModal.baseUrlHelp": "Si configuras una URL de base en Radarr (Ajustes > General > Nombre de host), ingrésala aquí (p. ej. /radarr). Déjala en blanco de lo contrario.",
   "components.Settings.RadarrModal.apiKeyHelp": "Encuéntralo en Radarr: Ajustes > General > Seguridad > Clave API",
-  "components.Login.urlBaseHelp": "Si configuras una URL de base en Jellyfin (Panel > Red), ingrésala aquí (p. ej. /jellyfin). Déjala en blanco de lo contrario.",
+  "components.Login.urlBaseHelp": "Si configuras una URL de base en Media Server (Panel > Red), ingrésala aquí (p. ej. /Media Server). Déjala en blanco de lo contrario.",
   "components.RequestCard.failedmodify": "Algo salió mal al modificar la solicitud.",
   "components.RequestList.RequestItem.failedmodify": "Algo salió mal al modificar la solicitud.",
   "i18n.notificationLocale": "Idioma de las notificationes"

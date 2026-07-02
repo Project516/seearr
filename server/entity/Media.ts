@@ -11,7 +11,6 @@ import downloadTracker from '@server/lib/downloadtracker';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { DbAwareColumn, resolveDbType } from '@server/utils/DbColumnHelper';
-import { getHostname } from '@server/utils/getHostname';
 import {
   AfterLoad,
   Column,
@@ -179,12 +178,6 @@ class Media {
   @Column({ nullable: true, type: 'varchar' })
   public ratingKey4k?: string | null;
 
-  @Column({ nullable: true, type: 'varchar' })
-  public jellyfinMediaId?: string | null;
-
-  @Column({ nullable: true, type: 'varchar' })
-  public jellyfinMediaId4k?: string | null;
-
   public serviceUrl?: string;
   public serviceUrl4k?: string;
   public downloadStatus?: DownloadingItem[] = [];
@@ -212,8 +205,6 @@ class Media {
     this.externalServiceSlug4k = null;
     this.ratingKey = null;
     this.ratingKey4k = null;
-    this.jellyfinMediaId = null;
-    this.jellyfinMediaId4k = null;
   }
 
   @AfterLoad()
@@ -248,23 +239,6 @@ class Media {
         if (tautulliUrl) {
           this.tautulliUrl4k = `${tautulliUrl}/info?rating_key=${this.ratingKey4k}`;
         }
-      }
-    } else {
-      const pageName =
-        getSettings().main.mediaServerType == MediaServerType.EMBY
-          ? 'item'
-          : 'details';
-      const { serverId, externalHostname } = getSettings().jellyfin;
-      const jellyfinHost =
-        externalHostname && externalHostname.length > 0
-          ? externalHostname
-          : getHostname();
-
-      if (this.jellyfinMediaId) {
-        this.mediaUrl = `${jellyfinHost}/web/index.html#!/${pageName}?id=${this.jellyfinMediaId}&context=home&serverId=${serverId}`;
-      }
-      if (this.jellyfinMediaId4k) {
-        this.mediaUrl4k = `${jellyfinHost}/web/index.html#!/${pageName}?id=${this.jellyfinMediaId4k}&context=home&serverId=${serverId}`;
       }
     }
   }

@@ -148,7 +148,7 @@ app
       startJobs();
     } else {
       logger.info(
-        `Skipping starting the scheduled jobs as we have no Plex/Jellyfin/Emby servers setup yet`,
+        `Skipping starting the scheduled jobs as we have no media servers setup yet`,
         {
           label: 'Server',
         }

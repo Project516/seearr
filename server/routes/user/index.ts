@@ -1,8 +1,6 @@
-import JellyfinAPI from '@server/api/jellyfin';
 import PlexTvAPI from '@server/api/plextv';
 import TautulliAPI from '@server/api/tautulli';
 import { MediaType } from '@server/constants/media';
-import { MediaServerType } from '@server/constants/server';
 import { UserType } from '@server/constants/user';
 import dataSource, { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
@@ -21,8 +19,6 @@ import { Permission, hasPermission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
-import { getHostname } from '@server/utils/getHostname';
-import { normalizeJellyfinGuid } from '@server/utils/jellyfin';
 import { isOwnProfileOrAdmin } from '@server/utils/profileMiddleware';
 import { Router } from 'express';
 import gravatarUrl from 'gravatar-url';
@@ -78,7 +74,7 @@ router.get('/', async (req, res, next) => {
 
     if (q) {
       query = query.where(
-        'LOWER(user.username) LIKE :q OR LOWER(user.email) LIKE :q OR LOWER(user.plexUsername) LIKE :q OR LOWER(user.jellyfinUsername) LIKE :q',
+        'LOWER(user.username) LIKE :q OR LOWER(user.email) LIKE :q OR LOWER(user.plexUsername) LIKE :q',
         { q: `%${q}%` }
       );
     }
@@ -98,12 +94,8 @@ router.get('/', async (req, res, next) => {
         query = query
           .addSelect(
             `CASE WHEN (user.username IS NULL OR user.username = '') THEN (
-                CASE WHEN (user.plexUsername IS NULL OR user.plexUsername = '') THEN (
-                  CASE WHEN (user.jellyfinUsername IS NULL OR user.jellyfinUsername = '') THEN
-                    "user"."email"
-                  ELSE
-                    LOWER(user.jellyfinUsername)
-                  END)
+                CASE WHEN (user.plexUsername IS NULL OR user.plexUsername = '') THEN
+                  "user"."email"
                 ELSE
                   LOWER(user.plexUsername)
                 END)
@@ -420,30 +412,6 @@ router.get<{ id: string }>('/:id', async (req, res, next) => {
   }
 });
 
-router.get<{ jellyfinUserId: string }>(
-  '/jellyfin/:jellyfinUserId',
-  async (req, res, next) => {
-    try {
-      const userRepository = getRepository(User);
-
-      const jellyfinUserId = normalizeJellyfinGuid(req.params.jellyfinUserId);
-      if (!jellyfinUserId) {
-        return next({ status: 400, message: 'Invalid Jellyfin User ID.' });
-      }
-
-      const user = await userRepository.findOneOrFail({
-        where: { jellyfinUserId },
-      });
-
-      return res
-        .status(200)
-        .json(user.filter(req.user?.hasPermission(Permission.MANAGE_USERS)));
-    } catch {
-      next({ status: 404, message: 'User not found.' });
-    }
-  }
-);
-
 router.use('/:id/settings', userSettingsRoutes);
 
 router.get<{ id: string }, UserRequestsResponse>(
@@ -714,83 +682,6 @@ router.post(
         }
       }
 
-      return res.status(201).json(User.filterMany(createdUsers));
-    } catch (e) {
-      next({ status: 500, message: e.message });
-    }
-  }
-);
-
-router.post(
-  '/import-from-jellyfin',
-  isAuthenticated(Permission.MANAGE_USERS),
-  async (req, res, next) => {
-    try {
-      const settings = getSettings();
-      const userRepository = getRepository(User);
-      const body = req.body as { jellyfinUserIds: string[] };
-
-      // taken from auth.ts
-      const admin = await userRepository.findOneOrFail({
-        where: { id: 1 },
-        select: ['id', 'jellyfinDeviceId', 'jellyfinUserId'],
-        order: { id: 'ASC' },
-      });
-
-      const hostname = getHostname();
-      const jellyfinClient = new JellyfinAPI(
-        hostname,
-        settings.jellyfin.apiKey,
-        admin.jellyfinDeviceId ?? ''
-      );
-      jellyfinClient.setUserId(admin.jellyfinUserId ?? '');
-
-      //const jellyfinUsersResponse = await jellyfinClient.getUsers();
-      const createdUsers: User[] = [];
-
-      jellyfinClient.setUserId(admin.jellyfinUserId ?? '');
-      const jellyfinUsers = await jellyfinClient.getUsers();
-
-      const jellyfinUsersById = new Map(
-        jellyfinUsers.users.map((user) => [
-          normalizeJellyfinGuid(user.Id),
-          user,
-        ])
-      );
-
-      for (const rawJellyfinUserId of body.jellyfinUserIds) {
-        const jellyfinUserId = normalizeJellyfinGuid(rawJellyfinUserId);
-        if (!jellyfinUserId) {
-          continue;
-        }
-
-        const jellyfinUser = jellyfinUsersById.get(jellyfinUserId);
-
-        const user = await userRepository.findOne({
-          select: ['id', 'jellyfinUserId'],
-          where: { jellyfinUserId: jellyfinUserId },
-        });
-
-        if (!user) {
-          const newUser = new User({
-            jellyfinUsername: jellyfinUser?.Name,
-            jellyfinUserId: jellyfinUser?.Id,
-            jellyfinDeviceId: Buffer.from(
-              `BOT_seerr_${jellyfinUser?.Name ?? ''}`
-            ).toString('base64'),
-            email: jellyfinUser?.Name,
-            permissions: settings.main.defaultPermissions,
-            avatar: `/avatarproxy/${jellyfinUser?.Id}`,
-            userType:
-              settings.main.mediaServerType === MediaServerType.JELLYFIN
-                ? UserType.JELLYFIN
-                : UserType.EMBY,
-          });
-
-          await userRepository.save(newUser);
-          createdUsers.push(newUser);
-        }
-      }
       return res.status(201).json(User.filterMany(createdUsers));
     } catch (e) {
       next({ status: 500, message: e.message });

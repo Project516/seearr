@@ -42,17 +42,7 @@
     ],
     "machineId": "test"
   },
-  "jellyfin": {
-    "name": "",
-    "ip": "",
-    "port": 8096,
-    "useSsl": false,
-    "urlBase": "",
-    "externalHostname": "",
-    "jellyfinForgotPasswordUrl": "",
-    "libraries": [],
-    "serverId": ""
-  },
+
   "tautulli": {},
   "radarr": [],
   "sonarr": [],
@@ -171,12 +161,7 @@
     "download-sync-reset": {
       "schedule": "0 0 1 * * *"
     },
-    "jellyfin-recently-added-scan": {
-      "schedule": "0 */5 * * * *"
-    },
-    "jellyfin-full-scan": {
-      "schedule": "0 0 3 * * *"
-    },
+
     "image-cache-cleanup": {
       "schedule": "0 0 5 * * *"
     }

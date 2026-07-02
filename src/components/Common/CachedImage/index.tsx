@@ -33,7 +33,6 @@ const CachedImage = ({ src, type, ...props }: CachedImageProps) => {
           )
         : src;
   } else if (type === 'avatar') {
-    // jellyfin avatar (if any)
     imageUrl = src;
   } else {
     return null;

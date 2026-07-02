@@ -51,7 +51,6 @@ import {
 import { type RatingResponse } from '@server/api/ratings';
 import { IssueStatus } from '@server/constants/issue';
 import { MediaStatus, MediaType } from '@server/constants/media';
-import { MediaServerType } from '@server/constants/server';
 import type { MovieDetails as MovieDetailsType } from '@server/models/Movie';
 import axios from 'axios';
 import { countries } from 'country-flag-icons';
@@ -300,27 +299,11 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
     )?.flatrate ?? [];
 
   function getAvailableMediaServerName() {
-    if (settings.currentSettings.mediaServerType === MediaServerType.EMBY) {
-      return intl.formatMessage(messages.play, { mediaServerName: 'Emby' });
-    }
-
-    if (settings.currentSettings.mediaServerType === MediaServerType.PLEX) {
-      return intl.formatMessage(messages.play, { mediaServerName: 'Plex' });
-    }
-
-    return intl.formatMessage(messages.play, { mediaServerName: 'Jellyfin' });
+    return intl.formatMessage(messages.play, { mediaServerName: 'Plex' });
   }
 
   function getAvailable4kMediaServerName() {
-    if (settings.currentSettings.mediaServerType === MediaServerType.EMBY) {
-      return intl.formatMessage(messages.play, { mediaServerName: 'Emby' });
-    }
-
-    if (settings.currentSettings.mediaServerType === MediaServerType.PLEX) {
-      return intl.formatMessage(messages.play4k, { mediaServerName: 'Plex' });
-    }
-
-    return intl.formatMessage(messages.play4k, { mediaServerName: 'Jellyfin' });
+    return intl.formatMessage(messages.play4k, { mediaServerName: 'Plex' });
   }
 
   const onClickWatchlistBtn = async (): Promise<void> => {
@@ -652,9 +635,7 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
             )}
           {hasPermission(Permission.MANAGE_REQUESTS) &&
             data.mediaInfo &&
-            (data.mediaInfo.jellyfinMediaId ||
-              data.mediaInfo.jellyfinMediaId4k ||
-              data.mediaInfo.status !== MediaStatus.UNKNOWN ||
+            (data.mediaInfo.status !== MediaStatus.UNKNOWN ||
               data.mediaInfo.status4k !== MediaStatus.UNKNOWN) && (
               <Tooltip content={intl.formatMessage(messages.managemovie)}>
                 <Button
