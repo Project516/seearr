@@ -4,7 +4,5 @@ dist/
 *.tsbuildinfo
 .env
 .env.local
-config/db/
-config/logs/
-config/DOCKER
+config/
 committag.json
