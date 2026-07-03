@@ -103,9 +103,6 @@ These following special variables are only included in media-related notificatio
 | `{{media_tvdbid}}`          | The media's TheTVDB ID                                                                                         |
 | `{{media_status}}`          | The media's availability status (`UNKNOWN`, `PENDING`, `PROCESSING`, `PARTIALLY_AVAILABLE`, or `AVAILABLE`)    |
 | `{{media_status4k}}`        | The media's 4K availability status (`UNKNOWN`, `PENDING`, `PROCESSING`, `PARTIALLY_AVAILABLE`, or `AVAILABLE`) |
-| `{{media_jellyfinMediaId}}` | The media's Jellyfin Media ID                                                                                  |
-| `{{media_plexRatingKey}}`   | The media's Plex ratingKey, if available (for standard library match)                                          |
-| `{{media_plexRatingKey4k}}` | The media's Plex ratingKey for 4K match, if available                                                          |
 
 #### Request
 
@@ -119,7 +116,6 @@ The following special variables are only included in request-related notificatio
 | `{{requestedBy_username}}`                | The requesting user's username                                                 |
 | `{{requestedBy_email}}`                   | The requesting user's email address                                            |
 | `{{requestedBy_avatar}}`                  | The requesting user's avatar URL                                               |
-| `{{requestedBy_jellyfinUserId}}`          | The requesting user's Jellyfin User ID                                         |
 | `{{requestedBy_settings_discordIds}}`     | The requesting user's Discord ID(s) as a JSON array (if set)                   |
 | `{{requestedBy_settings_telegramChatId}}` | The requesting user's Telegram Chat ID (if set)                                |
 

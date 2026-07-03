@@ -1,0 +1,75 @@
+---
+title: Radarr & Sonarr Setup
+description: Connect Seearr to your Radarr and Sonarr instances
+sidebar_position: 1
+---
+# Radarr & Sonarr Setup
+
+After installing Seearr, you need to connect it to your Radarr and/or Sonarr instances. This is the core workflow — Seearr discovers content via TMDb and sends requests to your *arr services.
+
+## Accessing the Setup Wizard
+
+When you first start Seearr, you'll be guided through a setup wizard. You can also access these settings later at **Settings → Services**.
+
+## Radarr Configuration
+
+### 1. Add a Radarr Server
+
+Navigate to **Settings → Services → Radarr** and click **Add Radarr Server**.
+
+### 2. Connection Settings
+
+| Field | Description |
+|---|---|
+| **Display Name** | A friendly name for this Radarr instance (e.g., "Main Radarr") |
+| **Hostname or IP Address** | The address of your Radarr server (e.g., `192.168.1.100` or `localhost`) |
+| **Port** | Radarr's port (default: `7878`) |
+| **API Key** | Found in Radarr under **Settings → General → API Key** |
+| **Base URL** | Optional. Set if Radarr is behind a reverse proxy (e.g., `/radarr`) |
+| **Use SSL** | Enable if Radarr is accessible via HTTPS |
+
+### 3. Quality Profiles
+
+After saving, select which quality profile Seearr should use when sending movie requests to Radarr.
+
+### 4. Root Folder
+
+Select the root folder where Radarr should store downloaded movies.
+
+## Sonarr Configuration
+
+### 1. Add a Sonarr Server
+
+Navigate to **Settings → Services → Sonarr** and click **Add Sonarr Server**.
+
+### 2. Connection Settings
+
+| Field | Description |
+|---|---|
+| **Display Name** | A friendly name for this Sonarr instance (e.g., "Main Sonarr") |
+| **Hostname or IP Address** | The address of your Sonarr server (e.g., `192.168.1.100` or `localhost`) |
+| **Port** | Sonarr's port (default: `8989`) |
+| **API Key** | Found in Sonarr under **Settings → General → API Key** |
+| **Base URL** | Optional. Set if Sonarr is behind a reverse proxy (e.g., `/sonarr`) |
+| **Use SSL** | Enable if Sonarr is accessible via HTTPS |
+
+### 3. Quality Profiles
+
+After saving, select which quality profile Seearr should use when sending series requests to Sonarr.
+
+### 4. Root Folder
+
+Select the root folder where Sonarr should store downloaded series.
+
+## Multiple Instances
+
+You can add multiple Radarr and Sonarr servers. This is useful if you have separate instances for different types of content (e.g., 4K and 1080p).
+
+## Testing the Connection
+
+After configuring your *arr services, use the **Test** button to verify that Seearr can communicate with them. If the test fails:
+
+1. Verify the hostname/IP and port are correct
+2. Ensure the API key is valid
+3. Check that Radarr/Sonarr is running and accessible from the machine running Seearr
+4. If using Docker, make sure both containers are on the same network

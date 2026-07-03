@@ -155,22 +155,19 @@ This is usually due to a network configuration issue or a firewall blocking the 
 
 ## Account does not have admin privileges
 
-If your admin account no longer has admin privileges, this is typically because your Jellyfin/Emby user ID has changed on the server side.
-
-This can happen if you have a new installation of Jellyfin/Emby or if you have changed the user ID of your admin account.
+If your admin account no longer has admin privileges, you can reset it by editing the owner account directly in the database.
 
 ### Solution: Reset admin access
 
-1. Back up your `settings.json` file (located in your Seerr data directory)
-2. Stop the Seerr container/service
-3. Delete the `settings.json` file
-4. Start Seerr again
+1. Stop Seearr
+2. Back up your `config/settings.json` file
+3. Delete `config/settings.json`
+4. Start Seearr again
 5. This will force the setup page to appear
 6. Go through the setup process with the same login details
-7. You can skip the services setup
-8. Once you reach the discover page, stop Seerr
-9. Restore your backed-up `settings.json` file
-10. Start Seerr again
+7. Stop Seerr
+8. Restore your backed-up `settings.json` file (except for the `owner` field)
+9. Start Seearr again
 
 This process should restore your admin privileges while preserving your settings.
 

@@ -5,16 +5,18 @@ sidebar_position: 1
 
 # Introduction
 
-Welcome to the Seerr Documentation.
+Welcome to the Seearr Documentation.
 
-**Seerr** is a free and open source software application for managing requests for your media library. It integrates with the media server of your choice: [Jellyfin](https://jellyfin.org), [Plex](https://plex.tv), and [Emby](https://emby.media/). In addition, it integrates with your existing services, such as **[Sonarr](https://sonarr.tv/)**, **[Radarr](https://radarr.video/)**.
+**Seearr** is a free and open source media request manager for **Radarr and Sonarr**. It discovers content via TMDb and sends requests to your *arr services — no media server required.
+
+This is a fork of [Seerr](https://github.com/seerr-team/seerr) that removes Jellyfin/Emby/Plex dependencies to create a lightweight, focused request management tool.
 
 ## Features
 
-- **Full Jellyfin/Emby/Plex integration**. Login and manage user access with Jellyfin/Emby/Plex.
-- **Syncs to your Jellyfin/Emby/Plex library** to show what titles you already have.
-- Supports Movies, Shows and Mixed Libraries.
-- **Integrates with Sonarr and Radarr**. With more services to come in the future.
+- **Discover via TMDb**. Browse and search movies and TV shows from The Movie Database.
+- **Integrates with Radarr and Sonarr**. Send requests directly to your *arr services.
+- **No media server required**. Lightweight and focused on request management.
+- Supports Movies and TV Shows.
 - Optionally set **Override rules** for requests to match with your defined conditions.
 - **Easy to use request system** allowing users to request individual seasons or movies in a friendly, clean UI.
 - **Simple request management UI**. Don't dig through the app to approve recent requests.
@@ -26,10 +28,8 @@ Welcome to the Seerr Documentation.
 - Easily **Watchlist** or **Blocklist** media.
 - More features to come!
 
-## We need your help!
+## About This Fork
 
-[Seerr](https://github.com/seerr-team/seerr) is an ambitious project developers/contributors poured a lot of work into, and we still have a lot more to do. Seerr is the result of a collaborative effort between the original Overseerr project and the Jellyseerr fork, created to deliver an excellent request management solution for Plex, Jellyfin and Emby users.
+Seearr strips away media server integrations (Plex, Jellyfin, Emby) to focus purely on the request workflow: discover content, send to Radarr/Sonarr, and track status. This makes it lighter, simpler to set up, and easier to maintain.
 
-We value your feedback and support in identifying and fixing bugs to make Seerr even better. As an open-source project, we welcome contributions from everyone. Contribution includes building new features, patching bugs, translating the application, or even just writing documentation.
-
-If you would like to contribute, please be sure to review our [contribution guidelines](https://github.com/seerr-team/seerr/blob/develop/CONTRIBUTING.md).
+Based on [Seerr](https://github.com/seerr-team/seerr) v3.3.0.

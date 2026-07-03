@@ -81,11 +81,8 @@ setup_config() {
   "cacheImages": false,
   "defaultPermissions": 1,
   "hideAvailable": false,
-  "localLogin": true,
-  "mediaServerLogin": true,
-  "newPlexLogin": true,
-  "mediaServerType": 0,
-  "partialRequestsEnabled": true,
+   "localLogin": true,
+   "partialRequestsEnabled": true,
   "enableSpecialEpisodes": false,
   "locale": "en",
   "youtubeUrl": ""

@@ -1,0 +1,102 @@
+---
+title: Bare Metal (Recommended)
+description: Install Seearr natively on Linux or macOS
+sidebar_position: 0
+---
+# Bare Metal
+
+This is the recommended installation method for Seearr. It runs natively on your system without Docker.
+
+:::info
+Seearr is a lightweight media request manager for **Radarr and Sonarr**. It does not require a media server (Plex, Jellyfin, or Emby) — just your *arr services.
+:::
+
+### Prerequisites
+
+- [Node.js 22.x](https://nodejs.org/en/download/) or newer (including Node 24+)
+- [pnpm 10.x](https://pnpm.io/installation)
+- [Git](https://git-scm.com/downloads)
+- Running instances of [Radarr](https://radarr.video/) and/or [Sonarr](https://sonarr.tv/)
+
+### Quick Start
+
+1. Clone the repository:
+```bash
+git clone https://github.com/Project516/seearr.git
+cd seearr
+```
+
+2. Run the setup script:
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+3. Start Seearr:
+```bash
+chmod +x start.sh
+./start.sh
+```
+
+:::info
+Seearr will be available at `http://localhost:5055` in your web browser.
+:::
+
+### What `setup.sh` Does
+
+The setup script handles everything automatically:
+
+1. Checks for Node.js 22+ and pnpm
+2. Installs all dependencies
+3. Builds the project
+4. Creates a default `config/settings.json`
+
+### What `start.sh` Does
+
+The start script:
+
+1. Runs `setup.sh` if dependencies haven't been installed yet
+2. Launches the app with `node dist/index.js`
+
+### Running as a systemd Service
+
+To run Seearr as a background service on Linux:
+
+1. Create the environment file at `/etc/seearr/seerr.conf`:
+```bash
+PORT=5055
+#HOST=127.0.0.1
+```
+
+2. Create the systemd service file at `/etc/systemd/system/seerr.service`:
+```ini
+[Unit]
+Description=Seearr Service
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+EnvironmentFile=/etc/seearr/seerr.conf
+Environment=NODE_ENV=production
+Type=exec
+Restart=on-failure
+WorkingDirectory=/opt/seearr
+ExecStart=/usr/bin/node dist/index.js
+
+[Install]
+WantedBy=multi-user.target
+```
+
+3. Enable and start:
+```bash
+sudo systemctl enable seerr
+sudo systemctl start seerr
+```
+
+### Updating
+
+```bash
+git pull
+./setup.sh
+sudo systemctl restart seerr
+```

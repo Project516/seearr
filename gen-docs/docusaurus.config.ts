@@ -4,8 +4,8 @@ import type * as OpenApiPlugin from 'docusaurus-plugin-openapi-docs';
 import { themes as prismThemes } from 'prism-react-renderer';
 
 const config: Config = {
-  title: 'Seerr',
-  tagline: 'One Stop Solution for all your media request needs',
+  title: 'Seearr',
+  tagline: 'Lightweight media request manager for Radarr and Sonarr',
   favicon: 'img/favicon.ico',
 
   url: 'https://docs.seerr.dev',

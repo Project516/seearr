@@ -1,33 +1,31 @@
 ---
 title: Build From Source (Advanced)
-description: Install Seerr by building from source
+description: Install Seearr by building from source
 sidebar_position: 2
 ---
 # Build from Source (Advanced)
 :::warning
 This method is not recommended for most users. It is intended for advanced users who are familiar with managing their own server infrastructure.
-
-Refer to [Configuring Databases](/extending-seerr/database-config#postgresql-options) for details on how to configure your database.
 :::
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
 ### Prerequisites
-    - [Node.js 22.x](https://nodejs.org/en/download/)
+    - [Node.js 22.x](https://nodejs.org/en/download/) or newer (including Node 24+)
     - [Pnpm 10.x](https://pnpm.io/installation)
     - [Git](https://git-scm.com/downloads)
 
 ## Unix (Linux, macOS)
 ### Installation
-1. Assuming you want the working directory to be `/opt/seerr`, create the directory and navigate to it:
+1. Assuming you want the working directory to be `/opt/seearr`, create the directory and navigate to it:
 ```bash
-sudo mkdir -p /opt/seerr && cd /opt/seerr
+sudo mkdir -p /opt/seearr && cd /opt/seearr
 ```
-2. Clone the Seerr repository and checkout the main branch:
+2. Clone the Seearr repository and checkout the seearr branch:
 ```bash
-git clone https://github.com/seerr-team/seerr.git .
-git checkout main
+git clone https://github.com/Project516/seearr.git .
+git checkout seearr
 ```
 3. Install the dependencies:
 ```bash
@@ -37,13 +35,13 @@ CYPRESS_INSTALL_BINARY=0 pnpm install --frozen-lockfile
 ```bash
 pnpm build
 ```
-5. Start Seerr:
+5. Start Seearr:
 ```bash
 pnpm start
 ```
 
 :::info
-You can now access Seerr by visiting `http://localhost:5055` in your web browser.
+You can now access Seearr by visiting `http://localhost:5055` in your web browser.
 :::
 
 #### Extending the installation
@@ -198,10 +196,10 @@ pm2 status seerr
 mkdir C:\seerr
 cd C:\seerr
 ```
-2. Clone the Seerr repository and checkout the main branch:
+2. Clone the Seearr repository and checkout the seearr branch:
 ```powershell
-git clone https://github.com/seerr-team/seerr.git .
-git checkout main
+git clone https://github.com/Project516/seearr.git .
+git checkout seearr
 ```
 3. Install the dependencies:
 ```powershell
