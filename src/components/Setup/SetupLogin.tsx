@@ -16,18 +16,19 @@ const messages = defineMessages('components.Setup', {
 });
 
 interface LoginWithMediaServerProps {
+  serverType: MediaServerType;
   onCancel: () => void;
   onComplete: () => void;
 }
 
 const SetupLogin: React.FC<LoginWithMediaServerProps> = ({
+  serverType,
   onCancel,
   onComplete,
 }) => {
   const [authToken, setAuthToken] = useState<string | undefined>(undefined);
-  const [mediaServerType, setMediaServerType] = useState<MediaServerType>(
-    MediaServerType.NOT_CONFIGURED
-  );
+  const [mediaServerType, setMediaServerType] =
+    useState<MediaServerType>(serverType);
   const { user, revalidate } = useUser();
 
   // Effect that is triggered when the `authToken` comes back from the Plex OAuth

@@ -52,8 +52,8 @@ install_and_build() {
   if [ -d "node_modules" ]; then
     info "node_modules exists — skipping install."
   else
-    info "Installing production dependencies..."
-    pnpm install --prod --frozen-lockfile
+    info "Installing dependencies..."
+    pnpm install --frozen-lockfile
   fi
 
   if [ -d ".next" ] && [ -d "dist" ]; then
