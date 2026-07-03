@@ -1297,7 +1297,6 @@ const TvDetails = ({ tv }: TvDetailsProps) => {
                 tvdbId={data.externalIds.tvdbId}
                 imdbId={data.externalIds.imdbId}
                 rtUrl={ratingData?.url}
-                mediaUrl={plexUrl ?? plexUrl4k}
               />
             </div>
           </div>

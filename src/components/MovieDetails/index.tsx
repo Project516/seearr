@@ -1075,9 +1075,6 @@ const MovieDetails = ({ movie }: MovieDetailsProps) => {
                 tvdbId={data.externalIds.tvdbId}
                 imdbId={data.externalIds.imdbId}
                 rtUrl={ratingData?.rt?.url}
-                mediaUrl={
-                  data.mediaInfo?.mediaUrl ?? data.mediaInfo?.mediaUrl4k
-                }
               />
             </div>
           </div>

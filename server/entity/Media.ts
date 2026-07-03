@@ -1,7 +1,6 @@
 import RadarrAPI from '@server/api/servarr/radarr';
 import SonarrAPI from '@server/api/servarr/sonarr';
 import { MediaStatus, MediaType } from '@server/constants/media';
-import { MediaServerType } from '@server/constants/server';
 import { getRepository } from '@server/datasource';
 import { Blocklist } from '@server/entity/Blocklist';
 import type { User } from '@server/entity/User';
@@ -208,39 +207,9 @@ class Media {
   }
 
   @AfterLoad()
-  public setPlexUrls(): void {
-    const { machineId, webAppUrl } = getSettings().plex;
-    const { externalUrl: tautulliUrl } = getSettings().tautulli;
-
-    if (getSettings().main.mediaServerType == MediaServerType.PLEX) {
-      if (this.ratingKey) {
-        this.mediaUrl = `${
-          webAppUrl ? webAppUrl : 'https://app.plex.tv/desktop'
-        }#!/server/${machineId}/details?key=%2Flibrary%2Fmetadata%2F${
-          this.ratingKey
-        }`;
-
-        this.iOSPlexUrl = `plex://preplay/?metadataKey=%2Flibrary%2Fmetadata%2F${this.ratingKey}&server=${machineId}`;
-
-        if (tautulliUrl) {
-          this.tautulliUrl = `${tautulliUrl}/info?rating_key=${this.ratingKey}`;
-        }
-      }
-
-      if (this.ratingKey4k) {
-        this.mediaUrl4k = `${
-          webAppUrl ? webAppUrl : 'https://app.plex.tv/desktop'
-        }#!/server/${machineId}/details?key=%2Flibrary%2Fmetadata%2F${
-          this.ratingKey4k
-        }`;
-
-        this.iOSPlexUrl4k = `plex://preplay/?metadataKey=%2Flibrary%2Fmetadata%2F${this.ratingKey4k}&server=${machineId}`;
-
-        if (tautulliUrl) {
-          this.tautulliUrl4k = `${tautulliUrl}/info?rating_key=${this.ratingKey4k}`;
-        }
-      }
-    }
+  public setMediaUrls(): void {
+    // Media server URLs are no longer set (Plex removed)
+    // Radarr/Sonarr URLs are handled by the service entities
   }
 
   @AfterLoad()

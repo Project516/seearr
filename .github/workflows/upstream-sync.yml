@@ -1,0 +1,79 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Upstream Sync
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    name: Sync with upstream
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch upstream
+        run: git remote add upstream https://github.com/seerr-team/seerr.git || true
+        git fetch upstream develop
+
+      - name: Check for new commits
+        id: check
+        run: |
+          LOCAL=$(git rev-parse HEAD)
+          UPSTREAM=$(git rev-parse upstream/develop)
+          MERGE_BASE=$(git merge-base HEAD upstream/develop)
+
+          if [ "$MERGE_BASE" = "$UPSTREAM" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+            echo "No new upstream commits."
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+            COMMITS=$(git rev-list --count "$MERGE_BASE".."$UPSTREAM")
+            echo "Found $COMMITS new upstream commit(s)."
+            echo "upstream_sha=$UPSTREAM" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create sync branch and PR
+        if: steps.check.outputs.up_to_date == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="upstream-sync-$(date +%Y%m%d-%H%M%S)"
+          git checkout -b "$BRANCH"
+          git merge upstream/develop --no-edit -m "Merge upstream seerr-team/seerr@develop
+
+          Synced to $(echo ${{ steps.check.outputs.upstream_sha }} | head -c 7)"
+
+          if [ $? -ne 0 ]; then
+            echo "Merge conflict detected. Skipping PR creation."
+            git merge --abort
+            exit 0
+          fi
+
+          git push origin "$BRANCH"
+
+          gh pr create \
+            --title "Upstream sync $(date +%Y-%m-%d)" \
+            --body "$(cat <<EOF
+          ## Upstream Sync
+
+          Merges latest changes from [seerr-team/seerr](https://github.com/seerr-team/seerr) (\`develop\` branch).
+
+          Upstream SHA: \`${{ steps.check.outputs.upstream_sha }}\`
+
+          Please review for conflicts with local customizations before merging.
+          EOF
+          )" \
+            --head "$BRANCH" \
+            --base seearr \
+            --label "upstream-sync"

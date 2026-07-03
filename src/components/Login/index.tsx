@@ -2,25 +2,18 @@ import ImageFader from '@app/components/Common/ImageFader';
 import PageTitle from '@app/components/Common/PageTitle';
 import LanguagePicker from '@app/components/Layout/LanguagePicker';
 import LocalLogin from '@app/components/Login/LocalLogin';
-import PlexLoginButton from '@app/components/Login/PlexLoginButton';
 import useSettings from '@app/hooks/useSettings';
 import { useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
-import { Transition } from '@headlessui/react';
-import { XCircleIcon } from '@heroicons/react/24/solid';
-import { MediaServerType } from '@server/constants/server';
-import axios from 'axios';
 import { useRouter } from 'next/dist/client/router';
 import Image from 'next/image';
-import { useEffect, useRef, useState, type JSX } from 'react';
+import { useEffect, useRef } from 'react';
 import { useIntl } from 'react-intl';
 import { CSSTransition, SwitchTransition } from 'react-transition-group';
 import useSWR from 'swr';
 
 const messages = defineMessages('components.Login', {
   signin: 'Sign In',
-  signinheader: 'Sign in to continue',
-  orsigninwith: 'Or sign in with',
 });
 
 const Login = () => {
@@ -29,35 +22,6 @@ const Login = () => {
   const settings = useSettings();
   const { user, revalidate } = useUser();
 
-  const [error, setError] = useState('');
-  const [isProcessing, setProcessing] = useState(false);
-  const [authToken, setAuthToken] = useState<string | undefined>(undefined);
-
-  // Effect that is triggered when the `authToken` comes back from the Plex OAuth
-  // We take the token and attempt to sign in. If we get a success message, we will
-  // ask swr to revalidate the user which _should_ come back with a valid user.
-  useEffect(() => {
-    const login = async () => {
-      setProcessing(true);
-      try {
-        const response = await axios.post('/api/v1/auth/plex', { authToken });
-
-        if (response.data?.id) {
-          revalidate();
-        }
-      } catch (e) {
-        setError(e.response?.data?.message);
-        setAuthToken(undefined);
-        setProcessing(false);
-      }
-    };
-    if (authToken) {
-      login();
-    }
-  }, [authToken, revalidate]);
-
-  // Effect that is triggered whenever `useUser`'s user changes. If we get a new
-  // valid user, we redirect the user to the home page as the login was successful.
   useEffect(() => {
     if (user) {
       router.push('/');
@@ -71,19 +35,6 @@ const Login = () => {
   });
 
   const localLoginRef = useRef<HTMLDivElement>(null);
-
-  const loginFormVisible = settings.currentSettings.localLogin;
-  const additionalLoginOptions = [
-    settings.currentSettings.mediaServerLogin &&
-      settings.currentSettings.mediaServerType === MediaServerType.PLEX && (
-        <PlexLoginButton
-          key="plex"
-          isProcessing={isProcessing}
-          onAuthToken={(authToken) => setAuthToken(authToken)}
-          large={!loginFormVisible}
-        />
-      ),
-  ].filter((o): o is JSX.Element => !!o);
 
   return (
     <div className="relative flex min-h-screen flex-col bg-gray-900 py-14">
@@ -108,80 +59,32 @@ const Login = () => {
           className="bg-gray-800/50 shadow sm:rounded-lg"
           style={{ backdropFilter: 'blur(5px)' }}
         >
-          <>
-            <Transition
-              as="div"
-              show={!!error}
-              enter="transition-opacity duration-300"
-              enterFrom="opacity-0"
-              enterTo="opacity-100"
-              leave="transition-opacity duration-300"
-              leaveFrom="opacity-100"
-              leaveTo="opacity-0"
-            >
-              <div className="mb-4 rounded-md bg-red-600 p-4">
-                <div className="flex">
-                  <div className="flex-shrink-0">
-                    <XCircleIcon className="h-5 w-5 text-red-300" />
-                  </div>
-                  <div className="ml-3">
-                    <h3 className="text-sm font-medium text-red-300">
-                      {error}
-                    </h3>
-                  </div>
-                </div>
-              </div>
-            </Transition>
-            <div className="px-10 py-8">
-              <SwitchTransition mode="out-in">
-                <CSSTransition
-                  key="local"
-                  nodeRef={localLoginRef}
-                  timeout={{ enter: 300, exit: 150 }}
-                  onEntered={() => {
-                    document
-                      .querySelector<HTMLInputElement>('#email, #username')
-                      ?.focus();
-                  }}
-                  classNames={{
-                    enter: 'opacity-0',
-                    enterActive: 'transition-opacity duration-300 opacity-100',
-                    exit: 'opacity-100',
-                    exitActive: 'transition-opacity duration-150 opacity-0',
-                  }}
-                >
-                  <div ref={localLoginRef} className="button-container">
-                    {settings.currentSettings.localLogin && (
-                      <LocalLogin revalidate={revalidate} />
-                    )}
-                  </div>
-                </CSSTransition>
-              </SwitchTransition>
-
-              {additionalLoginOptions.length > 0 &&
-                (loginFormVisible ? (
-                  <div className="flex items-center py-5">
-                    <div className="flex-grow border-t border-gray-600" />
-                    <span className="mx-2 flex-shrink text-sm text-gray-400">
-                      {intl.formatMessage(messages.orsigninwith)}
-                    </span>
-                    <div className="flex-grow border-t border-gray-600" />
-                  </div>
-                ) : (
-                  <h2 className="mb-6 text-center text-lg font-bold text-neutral-200">
-                    {intl.formatMessage(messages.signinheader)}
-                  </h2>
-                ))}
-
-              <div
-                className={`flex w-full flex-wrap gap-2 ${
-                  !loginFormVisible ? 'flex-col' : ''
-                }`}
+          <div className="px-10 py-8">
+            <SwitchTransition mode="out-in">
+              <CSSTransition
+                key="local"
+                nodeRef={localLoginRef}
+                timeout={{ enter: 300, exit: 150 }}
+                onEntered={() => {
+                  document
+                    .querySelector<HTMLInputElement>('#email, #username')
+                    ?.focus();
+                }}
+                classNames={{
+                  enter: 'opacity-0',
+                  enterActive: 'transition-opacity duration-300 opacity-100',
+                  exit: 'opacity-100',
+                  exitActive: 'transition-opacity duration-150 opacity-0',
+                }}
               >
-                {additionalLoginOptions}
-              </div>
-            </div>
-          </>
+                <div ref={localLoginRef} className="button-container">
+                  {settings.currentSettings.localLogin && (
+                    <LocalLogin revalidate={revalidate} />
+                  )}
+                </div>
+              </CSSTransition>
+            </SwitchTransition>
+          </div>
         </div>
       </div>
     </div>

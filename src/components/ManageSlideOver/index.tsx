@@ -709,7 +709,7 @@ const ManageSlideOver = ({
                       mediaType: intl.formatMessage(
                         mediaType === 'movie' ? messages.movie : messages.tvshow
                       ),
-                      mediaServerName: 'Plex',
+                      mediaServerName: 'Radarr/Sonarr',
                     })}
                   </div>
                 </div>
