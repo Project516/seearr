@@ -180,6 +180,12 @@ class SeerrMigration1759769291608 implements MigrationInterface {
   name = 'SeerrMigration1759769291608';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
+    // Skip if migration already applied (tables exist)
+    const tables = await queryRunner.query(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='override_rule'`
+    );
+    if (tables.length) return;
+
     await queryRunner.query(
       `CREATE TABLE "temporary_user_push_subscription" ("id" integer PRIMARY KEY AUTOINCREMENT NOT NULL, "endpoint" varchar NOT NULL, "p256dh" varchar NOT NULL, "auth" varchar NOT NULL, "userId" integer, "userAgent" varchar DEFAULT (NULL), "createdAt" datetime DEFAULT (datetime('now')), CONSTRAINT "UQ_f90ab5a4ed54905a4bb51a7148b" UNIQUE ("auth"), CONSTRAINT "FK_03f7958328e311761b0de675fbe" FOREIGN KEY ("userId") REFERENCES "user" ("id") ON DELETE CASCADE ON UPDATE NO ACTION)`
     );

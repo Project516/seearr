@@ -4,10 +4,10 @@ name: Merge Conflict Labeler
 
 on:
   push:
-    branches: [develop]
+    branches: [seearr]
 
   pull_request_target:
-    branches: [develop]
+    branches: [seearr]
     types: [opened, synchronize, reopened]
 
 permissions:

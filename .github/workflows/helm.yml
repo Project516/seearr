@@ -5,7 +5,7 @@ name: Release Charts
 on:
   push:
     branches:
-      - develop
+      - seearr
     paths:
       - 'charts/**'
       - '.github/workflows/release-charts.yml'
