@@ -9,7 +9,7 @@ const config: Config = {
   favicon: 'img/favicon.ico',
 
   url: 'https://docs.seerr.dev',
-  baseUrl: '/',
+  baseUrl: '/seearr/',
   trailingSlash: true,
 
   future: {
