@@ -30,6 +30,16 @@ const checkOverseerrMerge = async (): Promise<boolean> => {
 
   // Open the database connection to get the migrations and close it afterwards
   const dbConnection = await dataSource.initialize();
+
+  // Fresh database with no tables — nothing to migrate from
+  const hasTables = await dbConnection.query(
+    `SELECT name FROM sqlite_master WHERE type='table' AND name='migrations'`
+  );
+  if (!hasTables.length) {
+    await dbConnection.destroy();
+    return false;
+  }
+
   const migrations = dbConnection.migrations;
   await dbConnection.destroy();
 
