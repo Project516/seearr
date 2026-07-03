@@ -23,8 +23,9 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch upstream
-        run: git remote add upstream https://github.com/seerr-team/seerr.git || true
-        git fetch upstream develop
+        run: |
+          git remote add upstream https://github.com/seerr-team/seerr.git || true
+          git fetch upstream develop
 
       - name: Check for new commits
         id: check

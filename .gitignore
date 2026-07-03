@@ -6,3 +6,4 @@ dist/
 .env.local
 config/
 committag.json
+next-env.d.ts

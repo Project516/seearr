@@ -1,7 +1,6 @@
 import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
-import { startJobs } from '@server/job/schedule';
 import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
@@ -37,7 +36,7 @@ authRoutes.get('/me', isAuthenticated(), async (req, res) => {
 });
 
 // Setup endpoint: create first admin user (only when no users exist)
-authRoutes.post('/setup', async (req, res, next) => {
+authRoutes.post('/setup', async (req, res) => {
   const userRepository = getRepository(User);
   const settings = getSettings();
   const body = req.body as { email?: string; password?: string };
@@ -65,15 +64,13 @@ authRoutes.post('/setup', async (req, res, next) => {
       email: body.email.toLowerCase(),
       permissions: Permission.ADMIN,
       userType: UserType.LOCAL,
+      avatar: '',
     });
     await user.setPassword(body.password);
     await userRepository.save(user);
 
     settings.main.localLogin = true;
     await settings.save();
-
-    // Start jobs after first user is created
-    startJobs();
 
     // Set logged in session
     if (req.session) {
@@ -90,11 +87,11 @@ authRoutes.post('/setup', async (req, res, next) => {
     logger.error('Failed to create first admin user', {
       label: 'Auth',
       errorMessage: e.message,
+      stack: e.stack,
       ip: req.ip,
     });
-    return next({
-      status: 500,
-      message: 'Failed to create account.',
+    return res.status(500).json({
+      error: 'Failed to create account.',
     });
   }
 });

@@ -2,42 +2,56 @@
 <img src="./public/logo_full.svg" alt="Seearr" style="margin: 20px 0;">
 </p>
 <p align="center">
-<a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr/v3.3.0-blue" alt="Based on"></a>
-<a href="https://github.com/Project516/seearr/blob/main/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
+<a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr--team%2Fseerr-blue" alt="Based on"></a>
+<a href="https://github.com/Project516/seearr/blob/seearr/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
 </p>
 
-**Seearr** is a fork of [Seerr v3.3.0](https://github.com/seerr-team/seerr) with Jellyfin and Emby removed. It integrates with **[Plex](https://plex.tv)** as the media server and **[Sonarr](https://sonarr.tv/)** / **[Radarr](https://radarr.video/)** for media management.
+**Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby — just discover new media via TMDb and add it to your *arr services.
 
 Designed for bare-metal self-hosting — no Docker required.
 
 ## What's different from Seerr
 
-- **Jellyfin & Emby removed** — all related code, auth, scanners, settings, and UI stripped out
-- **Plex remains** as the supported media server
+- **Plex, Jellyfin & Emby removed** — all related code, auth, scanners, settings, and UI stripped out
+- **Radarr & Sonarr only** — discover via TMDb, request to your *arr services
+- **No media server dependency** — no library scanning, no deep links, no watchlist sync
 - **No Docker dependency** — run directly on bare metal
 - **Portable** — config and data live in the same directory as the app
+- **Auto-synced with upstream** — daily CI checks for new seerr-team/seerr releases
 
 ## Getting Started
 
 ```bash
 git clone https://github.com/Project516/seearr.git
 cd seearr
-bash setup.sh
+bash start.sh
 ```
 
-The setup script will:
+The `start.sh` script will:
 1. Check prerequisites (Node.js 22+, pnpm)
 2. Install dependencies and build
 3. Create a default `config/settings.json`
-4. Print instructions to start the server
+4. Start the server on port 5055
 
-Then start the server:
+Or run setup and start separately:
 
 ```bash
-NODE_ENV=production PORT=5055 node dist/index.js
+bash setup.sh    # install + build only
+bash start.sh    # run setup + start
 ```
 
-Open http://localhost:5055 in your browser and complete the setup wizard.
+Open http://localhost:5055 in your browser. The setup wizard will:
+1. Create your admin account
+2. Configure Radarr & Sonarr connections
+
+### Quick start (manual)
+
+```bash
+CONFIG_DIRECTORY="$PWD/config" \
+NODE_ENV=production \
+PORT=5055 \
+node dist/index.js
+```
 
 ### Environment variables
 
@@ -54,15 +68,15 @@ Open http://localhost:5055 in your browser and complete the setup wizard.
 | `HOST` | — | Listen address (e.g. `0.0.0.0`) |
 | `API_KEY` | — | Override auto-generated API key |
 
-## Updating to future upstream releases
+## Updating
 
-This fork tracks upstream seerr. Since it's based on the `v3.3.0` tag with full git history, you can merge upstream releases:
+This fork auto-syncs with upstream via a daily CI workflow. When seerr-team/seerr publishes a new release, a PR is automatically created with the changes. Review and merge it.
+
+To update manually:
 
 ```bash
-git remote add upstream https://github.com/seerr-team/seerr.git
-git fetch upstream --tags
-git checkout seearr-v3.3.0
-git merge v3.4.0   # or whatever the latest tag is
+git fetch upstream develop
+git merge upstream/develop
 # Resolve conflicts (if any) and commit
 ```
 
@@ -71,17 +85,18 @@ git merge v3.4.0   # or whatever the latest tag is
 - **Node.js** 22+
 - **pnpm** 10+
 - **SQLite** (default) or **PostgreSQL** (optional)
+- **Radarr** (for movies)
+- **Sonarr** (for TV series)
 
-## Current Features
+## Features
 
-- Plex integration (authentication, user import, library scan)
-- Radarr & Sonarr integration
+- TMDb-powered discovery (trending, popular, genres, upcoming)
+- Radarr & Sonarr integration (add movies/TV to download queue)
 - SQLite & PostgreSQL support
-- Movies, TV shows, and mixed libraries
 - Customizable request system (per-season or full)
 - Granular permission system
 - Notification agents (Discord, Telegram, Email, Pushover, etc.)
-- Watchlisting & blocklisting
+- Blocklisting
 - Mobile-friendly UI
 - Full REST API (docs at `/api-docs`)
 - Scheduled jobs (library scans, download sync, availability sync)

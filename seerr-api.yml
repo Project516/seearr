@@ -3793,6 +3793,36 @@ paths:
               required:
                 - email
                 - password
+  /auth/setup:
+    post:
+      summary: Create first admin account during setup
+      description: Creates the first admin user. Only works when no users exist. Automatically enables local login and starts background jobs.
+      security: []
+      tags:
+        - auth
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403':
+          description: Setup already completed (users exist)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              required:
+                - email
+                - password
   /auth/logout:
     post:
       summary: Sign out and clear session cookie
