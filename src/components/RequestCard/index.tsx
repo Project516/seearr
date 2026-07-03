@@ -71,8 +71,6 @@ const RequestCardError = ({ requestData }: RequestCardErrorProps) => {
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
     mediaUrl: requestData?.media?.mediaUrl,
     mediaUrl4k: requestData?.media?.mediaUrl4k,
-    iOSPlexUrl: requestData?.media?.iOSPlexUrl,
-    iOSPlexUrl4k: requestData?.media?.iOSPlexUrl4k,
   });
 
   const deleteRequest = async () => {
@@ -260,8 +258,6 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
   const { mediaUrl: plexUrl, mediaUrl4k: plexUrl4k } = useDeepLinks({
     mediaUrl: requestData?.media?.mediaUrl,
     mediaUrl4k: requestData?.media?.mediaUrl4k,
-    iOSPlexUrl: requestData?.media?.iOSPlexUrl,
-    iOSPlexUrl4k: requestData?.media?.iOSPlexUrl4k,
   });
 
   const modifyRequest = async (type: 'approve' | 'decline') => {

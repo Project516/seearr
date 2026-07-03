@@ -1,5 +1,8 @@
+import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
+import { startJobs } from '@server/job/schedule';
+import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
@@ -31,6 +34,69 @@ authRoutes.get('/me', isAuthenticated(), async (req, res) => {
   }
 
   return res.status(200).json(user);
+});
+
+// Setup endpoint: create first admin user (only when no users exist)
+authRoutes.post('/setup', async (req, res, next) => {
+  const userRepository = getRepository(User);
+  const settings = getSettings();
+  const body = req.body as { email?: string; password?: string };
+
+  // Only allow if no users exist yet
+  const userCount = await userRepository.count();
+  if (userCount > 0) {
+    return res.status(403).json({ error: 'Setup already completed.' });
+  }
+
+  if (!body.email || !body.password) {
+    return res.status(400).json({
+      error: 'You must provide both an email address and a password.',
+    });
+  }
+
+  if (body.password.length < 8) {
+    return res.status(400).json({
+      error: 'Password must be at least 8 characters long.',
+    });
+  }
+
+  try {
+    const user = new User({
+      email: body.email.toLowerCase(),
+      permissions: Permission.ADMIN,
+      userType: UserType.LOCAL,
+    });
+    await user.setPassword(body.password);
+    await userRepository.save(user);
+
+    settings.main.localLogin = true;
+    await settings.save();
+
+    // Start jobs after first user is created
+    startJobs();
+
+    // Set logged in session
+    if (req.session) {
+      req.session.userId = user.id;
+    }
+
+    logger.info('First admin user created during setup', {
+      label: 'Auth',
+      email: body.email,
+    });
+
+    return res.status(200).json(user.filter() ?? {});
+  } catch (e) {
+    logger.error('Failed to create first admin user', {
+      label: 'Auth',
+      errorMessage: e.message,
+      ip: req.ip,
+    });
+    return next({
+      status: 500,
+      message: 'Failed to create account.',
+    });
+  }
 });
 
 authRoutes.post('/local', async (req, res, next) => {
