@@ -14,6 +14,9 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  DOCKER_HUB: seerr/seerr
+
 jobs:
   changelog:
     name: Generate changelog
