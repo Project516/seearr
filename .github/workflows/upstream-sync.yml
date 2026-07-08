@@ -56,9 +56,9 @@ jobs:
           git checkout -b "$BRANCH"
           git merge upstream/develop --no-edit -m "Merge upstream seerr-team/seerr@develop
 
-          Synced to $(echo ${{ steps.check.outputs.upstream_sha }} | head -c 7)"
+          Synced to $(echo ${{ steps.check.outputs.upstream_sha }} | head -c 7)" || MERGE_EXIT=$?
 
-          if [ $? -ne 0 ]; then
+          if [ "${MERGE_EXIT:-0}" -ne 0 ]; then
             echo "Merge conflict detected. Skipping PR creation."
             git merge --abort
             exit 0
