@@ -79,5 +79,5 @@ jobs:
           EOF
           )" \
             --head "$BRANCH" \
-            --base seearr \
+            --base master \
             --label "upstream-sync"

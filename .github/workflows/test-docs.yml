@@ -5,7 +5,7 @@ name: Test Docs
 on:
   pull_request:
     branches:
-      - seearr
+      - master
     paths:
       - 'docs/**'
       - 'gen-docs/**'

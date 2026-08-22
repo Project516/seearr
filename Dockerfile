@@ -36,15 +36,19 @@ ENV COMMIT_TAG=${COMMIT_TAG}
 RUN apk add --no-cache tzdata
 
 WORKDIR /app
-USER node:node
 
 COPY --chown=node:node . .
 COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
 COPY --chown=node:node --from=build /app/.next ./.next
 COPY --chown=node:node --from=build /app/dist ./dist
 
-RUN touch config/DOCKER && \
+# config/ may not exist in a clean checkout (its contents are gitignored),
+# but the app needs it writable for its database and logs at runtime
+RUN mkdir -p config && chown node:node config && \
+  touch config/DOCKER && \
   echo "{\"commitTag\": \"${COMMIT_TAG}\"}" > committag.json
+
+USER node:node
 
 EXPOSE 5055
 

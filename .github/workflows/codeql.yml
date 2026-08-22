@@ -4,12 +4,12 @@ name: 'CodeQL'
 
 on:
   push:
-    branches: ['seearr']
+    branches: ['master']
     paths-ignore:
       - '**/*.md'
       - 'docs/**'
   pull_request:
-    branches: ['seearr']
+    branches: ['master']
     paths-ignore:
       - '**/*.md'
       - 'docs/**'

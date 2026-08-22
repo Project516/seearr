@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - seearr
+      - master
     paths:
       - 'docs/**'
       - 'gen-docs/**'
