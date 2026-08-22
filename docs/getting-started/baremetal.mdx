@@ -8,7 +8,7 @@ sidebar_position: 0
 This is the recommended installation method for Seearr. It runs natively on your system without Docker.
 
 :::info
-Seearr is a lightweight media request manager for **Radarr and Sonarr**. It does not require a media server (Plex, Jellyfin, or Emby) — just your *arr services.
+Seearr is a lightweight media request manager for **Radarr and Sonarr**. It does not require a media server (Plex, Jellyfin, or Emby), just your *arr services.
 :::
 
 ### Prerequisites
@@ -57,6 +57,9 @@ The start script:
 
 1. Runs `setup.sh` if dependencies haven't been installed yet
 2. Launches the app with `node dist/index.js`
+3. Opens `http://localhost:5055` in your browser once the server responds
+
+Set `NO_BROWSER=1` to skip the browser launch, which is useful over SSH or in scripts.
 
 ### Running as a systemd Service
 

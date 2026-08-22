@@ -3,21 +3,21 @@
 </p>
 <p align="center">
 <a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr--team%2Fseerr-blue" alt="Based on"></a>
-<a href="https://github.com/Project516/seearr/blob/seearr/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
+<a href="https://github.com/Project516/seearr/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
 </p>
 
-**Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby — just discover new media via TMDb and add it to your *arr services.
+**Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby. Discover new media via TMDb and add it to your *arr services.
 
-Designed for bare-metal self-hosting — no Docker required.
+Designed for bare-metal self-hosting first. Docker images are also published to GHCR.
 
 ## What's different from Seerr
 
-- **Plex, Jellyfin & Emby removed** — all related code, auth, scanners, settings, and UI stripped out
-- **Radarr & Sonarr only** — discover via TMDb, request to your *arr services
-- **No media server dependency** — no library scanning, no deep links, no watchlist sync
-- **No Docker dependency** — run directly on bare metal
-- **Portable** — config and data live in the same directory as the app
-- **Auto-synced with upstream** — daily CI checks for new seerr-team/seerr releases
+- **Plex, Jellyfin & Emby removed.** All related code, auth, scanners, settings, and UI stripped out
+- **Radarr & Sonarr only.** Discover via TMDb, request to your *arr services
+- **No media server dependency.** No library scanning, no deep links, no watchlist sync
+- **First-run wizard.** Create your admin account without a media server sign-in
+- **Portable.** Config and data live in the same directory as the app
+- **Auto-synced with upstream.** Daily CI merges changes from seerr-team/seerr
 
 ## Getting Started
 
@@ -32,6 +32,7 @@ The `start.sh` script will:
 2. Install dependencies and build
 3. Create a default `config/settings.json`
 4. Start the server on port 5055
+5. Open http://localhost:5055 in your browser once it responds (`NO_BROWSER=1` to skip)
 
 Or run setup and start separately:
 
@@ -40,9 +41,11 @@ bash setup.sh    # install + build only
 bash start.sh    # run setup + start
 ```
 
-Open http://localhost:5055 in your browser. The setup wizard will:
+The setup wizard will:
 1. Create your admin account
 2. Configure Radarr & Sonarr connections
+
+Prefer Docker? See [docs/getting-started/docker.mdx](https://github.com/Project516/seearr/blob/master/docs/getting-started/docker.mdx) or pull `ghcr.io/project516/seearr:seearr`.
 
 ### Quick start (manual)
 
