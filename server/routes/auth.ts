@@ -53,6 +53,12 @@ authRoutes.post('/setup', async (req, res) => {
     });
   }
 
+  if (!validator.isEmail(body.email, { require_tld: false })) {
+    return res.status(400).json({
+      error: 'You must provide a valid email address.',
+    });
+  }
+
   if (body.password.length < 8) {
     return res.status(400).json({
       error: 'Password must be at least 8 characters long.',

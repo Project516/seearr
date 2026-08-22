@@ -28,7 +28,7 @@ check_prereqs() {
   if [ "$NODE_VER" -lt 22 ]; then
     error "Node.js 22+ required (found: $(node -v))."
   fi
-  info "  Node.js $(node -v) ✓"
+  info "  Node.js $(node -v) [ok]"
 
   if ! command -v pnpm &>/dev/null; then
     warn "pnpm not found. Installing via corepack..."
@@ -40,7 +40,7 @@ check_prereqs() {
       exit 1
     }
   fi
-  info "  pnpm $(pnpm -v) ✓"
+  info "  pnpm $(pnpm -v) [ok]"
 }
 
 # ─────────────────────────────────────────────────────────
@@ -81,8 +81,8 @@ setup_config() {
   "cacheImages": false,
   "defaultPermissions": 1,
   "hideAvailable": false,
-   "localLogin": true,
-   "partialRequestsEnabled": true,
+  "localLogin": true,
+  "partialRequestsEnabled": true,
   "enableSpecialEpisodes": false,
   "locale": "en",
   "youtubeUrl": ""
@@ -105,7 +105,7 @@ print_done() {
   cat <<- EOF
 
  ─────────────────────────────────────────────────
-  ✅  Setup complete!
+  Setup complete!
  ─────────────────────────────────────────────────
 
   App directory: $APP_DIR
