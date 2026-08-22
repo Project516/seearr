@@ -56,12 +56,20 @@ install_and_build() {
     pnpm install --frozen-lockfile
   fi
 
-  if [ -d ".next" ] && [ -d "dist" ]; then
-    info "Build artifacts exist — skipping build."
+  # Rebuild when artifacts are missing or older than any source change
+  if [ -f ".next/BUILD_ID" ] && [ -f "dist/index.js" ]; then
+    if [ -z "$(find src server public package.json pnpm-lock.yaml next.config.ts -newer .next/BUILD_ID -print -quit 2>/dev/null)" ]; then
+      info "Build artifacts are up to date — skipping build."
+      return
+    fi
+    warn "Source changed since the last build — rebuilding..."
   else
-    info "Building application..."
-    pnpm build
+    info "No build artifacts found — building..."
   fi
+
+  info "Building application..."
+  rm -rf .next
+  pnpm build
 }
 
 # ─────────────────────────────────────────────────────────
