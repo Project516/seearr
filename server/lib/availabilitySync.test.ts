@@ -1,53 +1,30 @@
 import assert from 'node:assert/strict';
 import { beforeEach, describe, it } from 'node:test';
 
-import type { PlexMetadata } from '@server/api/plexapi';
-import PlexAPI from '@server/api/plexapi';
-import type { SonarrSeason, SonarrSeries } from '@server/api/servarr/sonarr';
+import type { RadarrMovie } from '@server/api/servarr/radarr';
+import RadarrAPI from '@server/api/servarr/radarr';
+import type { SonarrSeries } from '@server/api/servarr/sonarr';
 import SonarrAPI from '@server/api/servarr/sonarr';
 import TheMovieDb from '@server/api/themoviedb';
 import type {
   TmdbTvDetails,
   TmdbTvSeasonResult,
 } from '@server/api/themoviedb/interfaces';
-import { MediaStatus, MediaType } from '@server/constants/media';
-import { MediaServerType } from '@server/constants/server';
+import {
+  MediaRequestStatus,
+  MediaStatus,
+  MediaType,
+} from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
-import Season from '@server/entity/Season';
+import MediaRequest from '@server/entity/MediaRequest';
 import { User } from '@server/entity/User';
-import type { SonarrSettings } from '@server/lib/settings';
+import availabilitySync from '@server/lib/availabilitySync';
+import type { RadarrSettings } from '@server/lib/settings';
 import { getSettings } from '@server/lib/settings';
 import { setupTestDb } from '@server/test/db';
 
-// --- Mock PlexAPI ---
-let getMetadataImpl: (
-  key: string,
-  options?: { includeChildren?: boolean }
-) => Promise<PlexMetadata> = async () => {
-  throw new Error('404');
-};
-let getChildrenMetadataImpl: (
-  key: string
-) => Promise<PlexMetadata[]> = async () => [];
-
-Object.defineProperty(PlexAPI.prototype, 'getMetadata', {
-  get() {
-    return async (key: string, options?: { includeChildren?: boolean }) =>
-      getMetadataImpl(key, options);
-  },
-  set() {},
-  configurable: true,
-});
-
-Object.defineProperty(PlexAPI.prototype, 'getChildrenMetadata', {
-  get() {
-    return async (key: string) => getChildrenMetadataImpl(key);
-  },
-  set() {},
-  configurable: true,
-});
-
+// --- Mock SonarrAPI ---
 // --- Mock SonarrAPI ---
 let getSeriesByIdImpl: (id: number) => Promise<SonarrSeries> = async () => {
   throw new Error('404');
@@ -56,6 +33,19 @@ let getSeriesByIdImpl: (id: number) => Promise<SonarrSeries> = async () => {
 Object.defineProperty(SonarrAPI.prototype, 'getSeriesById', {
   get() {
     return async (id: number) => getSeriesByIdImpl(id);
+  },
+  set() {},
+  configurable: true,
+});
+
+// --- Mock RadarrAPI ---
+let getMovieImpl: (id: number) => Promise<RadarrMovie> = async () => {
+  throw new Error('404');
+};
+
+Object.defineProperty(RadarrAPI.prototype, 'getMovie', {
+  get() {
+    return async ({ id }: { id: number }) => getMovieImpl(id);
   },
   set() {},
   configurable: true,
@@ -140,135 +130,41 @@ function fakeTmdbShow(
   };
 }
 
-import availabilitySync from '@server/lib/availabilitySync';
-
 setupTestDb();
 
-function configureSonarr(overrides: Partial<SonarrSettings>[] = [{}]): void {
+function configureRadarr(overrides: Partial<RadarrSettings>[] = [{}]): void {
   const settings = getSettings();
-  settings.sonarr = overrides.map((o, i) => ({
+  settings.radarr = overrides.map((o, i) => ({
     id: i,
-    name: `Sonarr ${i}`,
+    name: `Radarr ${i}`,
     hostname: 'localhost',
-    port: 8989,
+    port: 7878,
     apiKey: 'test-key',
     baseUrl: '',
     useSsl: false,
     activeProfileId: 1,
-    activeDirectory: '/tv',
-    activeLanguageProfileId: 1,
-    activeAnimeProfileId: undefined,
-    activeAnimeDirectory: '',
-    activeAnimeLanguageProfileId: undefined,
-    animeTags: [],
-    is4k: false,
-    enableSeasonFolders: true,
+    activeProfileName: 'Default',
+    activeDirectory: '/movies',
+    minimumAvailability: 'released',
     tags: [],
+    is4k: false,
     isDefault: i === 0,
     syncEnabled: true,
     preventSearch: false,
+    tagRequests: false,
+    overrideRule: [],
     externalUrl: '',
     ...o,
-  })) as SonarrSettings[];
-  settings.radarr = [];
-}
-
-function configurePlex(): void {
-  const settings = getSettings();
-  settings.main.mediaServerType = MediaServerType.PLEX;
-}
-
-// --- Plex helpers ---
-function fakePlexSeason(seasonNumber: number, ratingKey: string): PlexMetadata {
-  return {
-    ratingKey,
-    guid: `plex://season/${ratingKey}`,
-    type: 'season',
-    title: `Season ${seasonNumber}`,
-    Guid: [],
-    index: seasonNumber,
-    leafCount: 0,
-    viewedLeafCount: 0,
-    addedAt: 0,
-    updatedAt: 0,
-    Media: [],
-  };
-}
-
-function fakePlexEpisodes(count: number): PlexMetadata[] {
-  return Array.from({ length: count }, (_, i) => ({
-    ratingKey: `ep-${i}`,
-    guid: `plex://episode/ep-${i}`,
-    type: 'movie' as const,
-    title: `Episode ${i + 1}`,
-    Guid: [],
-    index: i + 1,
-    leafCount: 0,
-    viewedLeafCount: 0,
-    addedAt: 0,
-    updatedAt: 0,
-    Media: [
-      {
-        id: i,
-        duration: 2400,
-        bitrate: 4000,
-        width: 1920,
-        height: 1080,
-        aspectRatio: 1.78,
-        audioChannels: 2,
-        audioCodec: 'aac',
-        videoCodec: 'h264',
-        videoResolution: '1080',
-        container: 'mkv',
-        videoFrameRate: '24p',
-        videoProfile: 'high',
-      },
-    ],
-  }));
-}
-
-function fakePlexShow(ratingKey: string): PlexMetadata {
-  return {
-    ratingKey,
-    guid: `plex://show/${ratingKey}`,
-    type: 'show',
-    title: 'Test Show',
-    Guid: [],
-    index: 1,
-    leafCount: 0,
-    viewedLeafCount: 0,
-    addedAt: 0,
-    updatedAt: 0,
-    Media: [],
-  };
-}
-
-// --- Sonarr helpers ---
-function fakeSonarrSeasons(
-  totalSeasons: number,
-  seasonsWithFiles: Record<number, number>
-): SonarrSeason[] {
-  return Array.from({ length: totalSeasons }, (_, i) => ({
-    seasonNumber: i + 1,
-    monitored: true,
-    statistics: {
-      episodeFileCount: seasonsWithFiles[i + 1] ?? 0,
-      totalEpisodeCount: 10,
-      episodeCount: 10,
-      percentOfEpisodes: seasonsWithFiles[i + 1] ? 100 : 0,
-      sizeOnDisk: seasonsWithFiles[i + 1] ? 7516192768 : 0,
-      previousAiring: undefined,
-    },
-  }));
+  })) as RadarrSettings[];
+  settings.sonarr = [];
 }
 
 describe('AvailabilitySync', () => {
   beforeEach(async () => {
-    getMetadataImpl = async () => {
+    getSeriesByIdImpl = async () => {
       throw new Error('404');
     };
-    getChildrenMetadataImpl = async () => [];
-    getSeriesByIdImpl = async () => {
+    getMovieImpl = async () => {
       throw new Error('404');
     };
     getTvShowImpl = async ({ tvId }) =>
@@ -309,272 +205,180 @@ describe('AvailabilitySync', () => {
     }
   });
 
-  describe('TV season availability - Plex', () => {
-    it('should mark deleted seasons when Plex returns empty season metadata entries', async () => {
-      configurePlex();
-      configureSonarr([{ syncEnabled: true }]);
+  describe('movie availability - Radarr', () => {
+    it('should mark a deleted movie as DELETED when a second standard Radarr instance has a colliding externalServiceId', async () => {
+      configureRadarr([{ syncEnabled: true }, { syncEnabled: true }]);
 
       const mediaRepository = getRepository(Media);
 
       const media = new Media();
-      media.tmdbId = 2000;
-      media.mediaType = MediaType.TV;
+      media.tmdbId = 5000;
+      media.mediaType = MediaType.MOVIE;
       media.status = MediaStatus.AVAILABLE;
-      media.ratingKey = 'plex-house-rk';
-      media.externalServiceId = 200;
-      media.seasons = [];
-
-      for (let i = 1; i <= 8; i++) {
-        media.seasons.push(
-          new Season({
-            seasonNumber: i,
-            status: MediaStatus.AVAILABLE,
-            status4k: MediaStatus.UNKNOWN,
-          })
-        );
-      }
+      media.ratingKey = 'gone-from-plex-rk';
+      media.externalServiceId = 300;
+      media.serviceId = 0;
 
       await mediaRepository.save(media);
 
-      getMetadataImpl = async (key: string) => {
-        if (key === 'plex-house-rk') {
-          return fakePlexShow('plex-house-rk');
+      // Probed once per standard instance with the same id (300): origin 404s
+      // (deleted); the other instance has a different movie at 300.
+      let radarrCall = 0;
+      getMovieImpl = async (id: number) => {
+        if (id !== 300) {
+          throw new Error('404');
         }
-        throw new Error('404');
-      };
-
-      // Plex returns ALL 8 season metadata entries,
-      // but only season 6 has episode files
-      getChildrenMetadataImpl = async (key: string) => {
-        if (key === 'plex-house-rk') {
-          return Array.from({ length: 8 }, (_, i) =>
-            fakePlexSeason(i + 1, `plex-house-s${i + 1}-rk`)
-          );
+        radarrCall += 1;
+        if (radarrCall === 1) {
+          throw new Error('404');
         }
-        if (key === 'plex-house-s6-rk') {
-          return fakePlexEpisodes(21);
-        }
-        return [];
-      };
-
-      // Sonarr: only season 6 has files
-      getSeriesByIdImpl = async (id: number) => {
-        if (id === 200) {
-          return {
-            tvdbId: 73255,
-            id: 200,
-            title: 'House',
-            titleSlug: 'house',
-            monitored: true,
-            statistics: {
-              episodeFileCount: 21,
-              totalEpisodeCount: 177,
-              episodeCount: 177,
-              percentOfEpisodes: 11.86,
-              sizeOnDisk: 0,
-              seasonCount: 8,
-            },
-            seasons: fakeSonarrSeasons(8, { 6: 21 }),
-          } as unknown as SonarrSeries;
-        }
-        throw new Error('404');
+        return {
+          id: 300,
+          tmdbId: 999999,
+          title: 'Unrelated Colliding Movie',
+          hasFile: true,
+        } as unknown as RadarrMovie;
       };
 
       await availabilitySync.run();
 
       const updated = await mediaRepository.findOneOrFail({
-        where: { tmdbId: 2000 },
-        relations: ['seasons'],
+        where: { tmdbId: 5000 },
       });
-
-      const s6 = updated.seasons.find((s) => s.seasonNumber === 6);
-      assert.strictEqual(
-        s6?.status,
-        MediaStatus.AVAILABLE,
-        'Season 6 should remain AVAILABLE'
-      );
-
-      for (const season of updated.seasons) {
-        if (season.seasonNumber !== 6) {
-          assert.strictEqual(
-            season.status,
-            MediaStatus.DELETED,
-            `Season ${season.seasonNumber} should be DELETED but was ${season.status}`
-          );
-        }
-      }
 
       assert.strictEqual(
         updated.status,
-        MediaStatus.PARTIALLY_AVAILABLE,
-        'Show should be PARTIALLY_AVAILABLE after season removal'
+        MediaStatus.DELETED,
+        'Movie deleted from its origin instance and Plex must not be kept alive by a colliding externalServiceId on another standard instance'
+      );
+    });
+  });
+
+  describe('movie deletion metadata handling', () => {
+    it('should keep service metadata when deleting a 4K movie with an approved 4K request in flight', async () => {
+      configureRadarr([{ is4k: true, syncEnabled: true }]);
+
+      const mediaRepository = getRepository(Media);
+
+      const media = new Media();
+      media.tmdbId = 687167;
+      media.mediaType = MediaType.MOVIE;
+      media.status = MediaStatus.UNKNOWN;
+      media.status4k = MediaStatus.AVAILABLE;
+      media.ratingKey4k = 'req-in-flight-rk';
+      media.serviceId4k = 0;
+      media.externalServiceId4k = 512;
+      media.externalServiceSlug4k = 'test-movie';
+      await mediaRepository.save(media);
+
+      // Insert through a query builder with listeners disabled so
+      // MediaRequestSubscriber.afterInsert does not try to reach Radarr.
+      await getRepository(MediaRequest)
+        .createQueryBuilder()
+        .insert()
+        .into(MediaRequest)
+        .values({
+          status: MediaRequestStatus.APPROVED,
+          media: { id: media.id },
+          requestedBy: { id: 1 },
+          type: MediaType.MOVIE,
+          is4k: true,
+        })
+        .callListeners(false)
+        .execute();
+
+      await availabilitySync.run();
+
+      const updated = await mediaRepository.findOneOrFail({
+        where: { tmdbId: 687167 },
+      });
+
+      assert.strictEqual(updated.status4k, MediaStatus.DELETED);
+      assert.strictEqual(
+        updated.externalServiceId4k,
+        512,
+        'externalServiceId4k must be kept while an approved 4K request is in flight'
+      );
+      assert.strictEqual(updated.serviceId4k, 0);
+      assert.strictEqual(updated.externalServiceSlug4k, 'test-movie');
+      assert.strictEqual(
+        updated.ratingKey4k,
+        'req-in-flight-rk',
+        'ratingKey4k must be kept while an approved 4K request is in flight'
       );
     });
 
-    it('should assume season exists when getChildrenMetadata fails for episodes (safe fallback)', async () => {
-      configurePlex();
-      configureSonarr([{ syncEnabled: true }]);
+    it('should null service metadata when deleting a 4K movie with no open request', async () => {
+      configureRadarr([{ is4k: true, syncEnabled: true }]);
 
       const mediaRepository = getRepository(Media);
 
       const media = new Media();
-      media.tmdbId = 2001;
-      media.mediaType = MediaType.TV;
-      media.status = MediaStatus.AVAILABLE;
-      media.ratingKey = 'plex-house2-rk';
-      media.externalServiceId = 201;
-      media.seasons = [
-        new Season({
-          seasonNumber: 1,
-          status: MediaStatus.AVAILABLE,
-          status4k: MediaStatus.UNKNOWN,
-        }),
-      ];
-
+      media.tmdbId = 687168;
+      media.mediaType = MediaType.MOVIE;
+      media.status = MediaStatus.UNKNOWN;
+      media.status4k = MediaStatus.AVAILABLE;
+      media.ratingKey4k = 'no-request-rk';
+      media.serviceId4k = 0;
+      media.externalServiceId4k = 640;
+      media.externalServiceSlug4k = 'another-movie';
       await mediaRepository.save(media);
-
-      getMetadataImpl = async (key: string) => {
-        if (key === 'plex-house2-rk') {
-          return fakePlexShow('plex-house2-rk');
-        }
-        throw new Error('404');
-      };
-
-      getChildrenMetadataImpl = async (key: string) => {
-        if (key === 'plex-house2-rk') {
-          return [fakePlexSeason(1, 'plex-house2-s1-rk')];
-        }
-        throw new Error('Connection refused');
-      };
-
-      getSeriesByIdImpl = async (id: number) => {
-        if (id === 201) {
-          return {
-            tvdbId: 99999,
-            id: 201,
-            title: 'House 2',
-            titleSlug: 'house-2',
-            monitored: true,
-            statistics: {
-              episodeFileCount: 10,
-              totalEpisodeCount: 10,
-              episodeCount: 10,
-              percentOfEpisodes: 100,
-              sizeOnDisk: 0,
-              seasonCount: 1,
-            },
-            seasons: fakeSonarrSeasons(1, { 1: 10 }),
-          } as unknown as SonarrSeries;
-        }
-        throw new Error('404');
-      };
 
       await availabilitySync.run();
 
       const updated = await mediaRepository.findOneOrFail({
-        where: { tmdbId: 2001 },
-        relations: ['seasons'],
+        where: { tmdbId: 687168 },
       });
 
-      assert.strictEqual(
-        updated.seasons[0].status,
-        MediaStatus.AVAILABLE,
-        'Season should remain AVAILABLE when getChildrenMetadata fails'
-      );
-      assert.strictEqual(
-        updated.status,
-        MediaStatus.AVAILABLE,
-        'Show should remain AVAILABLE when getChildrenMetadata fails'
-      );
+      assert.strictEqual(updated.status4k, MediaStatus.DELETED);
+      assert.strictEqual(updated.externalServiceId4k, null);
+      assert.strictEqual(updated.serviceId4k, null);
+      assert.strictEqual(updated.externalServiceSlug4k, null);
+      assert.strictEqual(updated.ratingKey4k, null);
     });
+  });
 
-    it('should mark deleted seasons when only some seasons have episodes in Plex (no Sonarr link)', async () => {
-      configurePlex();
-      configureSonarr([{ syncEnabled: true }]);
+  describe('movie availability - scan-disabled servers', () => {
+    it('should count a configured but scan-disabled 4K Radarr server as existence evidence', async () => {
+      configureRadarr([
+        { syncEnabled: true },
+        { is4k: true, syncEnabled: false, port: 7879 },
+      ]);
 
       const mediaRepository = getRepository(Media);
 
       const media = new Media();
-      media.tmdbId = 2002;
-      media.mediaType = MediaType.TV;
-      media.status = MediaStatus.AVAILABLE;
-      media.ratingKey = 'plex-house3-rk';
-      media.externalServiceId = undefined as unknown as number;
-      media.seasons = [];
-
-      for (let i = 1; i <= 4; i++) {
-        media.seasons.push(
-          new Season({
-            seasonNumber: i,
-            status: MediaStatus.AVAILABLE,
-            status4k: MediaStatus.UNKNOWN,
-          })
-        );
-      }
-
+      media.tmdbId = 687169;
+      media.mediaType = MediaType.MOVIE;
+      media.status = MediaStatus.UNKNOWN;
+      media.status4k = MediaStatus.AVAILABLE;
+      media.ratingKey4k = 'not-in-plex-rk';
+      media.serviceId4k = 1;
+      media.externalServiceId4k = 700;
       await mediaRepository.save(media);
 
-      getMetadataImpl = async (key: string) => {
-        if (key === 'plex-house3-rk') {
-          return fakePlexShow('plex-house3-rk');
+      getMovieImpl = async (id: number) => {
+        if (id !== 700) {
+          throw new Error('404');
         }
-        throw new Error('404');
-      };
-
-      getChildrenMetadataImpl = async (key: string) => {
-        if (key === 'plex-house3-rk') {
-          return Array.from({ length: 4 }, (_, i) =>
-            fakePlexSeason(i + 1, `plex-house3-s${i + 1}-rk`)
-          );
-        }
-        // Only seasons 2 and 4 have episodes
-        if (key === 'plex-house3-s2-rk' || key === 'plex-house3-s4-rk') {
-          return fakePlexEpisodes(10);
-        }
-        return [];
-      };
-
-      getSeriesByIdImpl = async () => {
-        throw new Error('404');
+        return {
+          id: 700,
+          tmdbId: 687169,
+          title: 'Test Movie',
+          hasFile: true,
+        } as unknown as RadarrMovie;
       };
 
       await availabilitySync.run();
 
       const updated = await mediaRepository.findOneOrFail({
-        where: { tmdbId: 2002 },
-        relations: ['seasons'],
+        where: { tmdbId: 687169 },
       });
 
-      const s2 = updated.seasons.find((s) => s.seasonNumber === 2);
-      const s4 = updated.seasons.find((s) => s.seasonNumber === 4);
       assert.strictEqual(
-        s2?.status,
+        updated.status4k,
         MediaStatus.AVAILABLE,
-        'Season 2 should remain AVAILABLE'
-      );
-      assert.strictEqual(
-        s4?.status,
-        MediaStatus.AVAILABLE,
-        'Season 4 should remain AVAILABLE'
-      );
-
-      const s1 = updated.seasons.find((s) => s.seasonNumber === 1);
-      const s3 = updated.seasons.find((s) => s.seasonNumber === 3);
-      assert.strictEqual(
-        s1?.status,
-        MediaStatus.DELETED,
-        'Season 1 should be DELETED'
-      );
-      assert.strictEqual(
-        s3?.status,
-        MediaStatus.DELETED,
-        'Season 3 should be DELETED'
-      );
-
-      assert.strictEqual(
-        updated.status,
-        MediaStatus.PARTIALLY_AVAILABLE,
-        'Show should be PARTIALLY_AVAILABLE after season removal'
+        'A movie present on a configured 4K Radarr server must be kept even when that server has scanning disabled'
       );
     });
   });

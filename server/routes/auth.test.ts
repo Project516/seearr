@@ -1,9 +1,14 @@
 import assert from 'node:assert/strict';
 import { before, beforeEach, describe, it, mock } from 'node:test';
 
+import PreparedEmail from '@server/lib/email';
+
+const emailMock = mock.method(PreparedEmail.prototype, 'send', async () => {
+  return undefined;
+}).mock;
+
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
-import PreparedEmail from '@server/lib/email';
 import { getSettings } from '@server/lib/settings';
 import { checkUser } from '@server/middleware/auth';
 import { setupTestDb } from '@server/test/db';
@@ -12,10 +17,6 @@ import express from 'express';
 import session from 'express-session';
 import request from 'supertest';
 import authRoutes from './auth';
-
-const emailMock = mock.method(PreparedEmail.prototype, 'send', async () => {
-  return undefined;
-}).mock;
 
 let app: Express;
 

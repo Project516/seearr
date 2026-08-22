@@ -195,15 +195,19 @@ class Media {
     Object.assign(this, init);
   }
 
-  public resetServiceData(): void {
-    this.serviceId = null;
-    this.serviceId4k = null;
-    this.externalServiceId = null;
-    this.externalServiceId4k = null;
-    this.externalServiceSlug = null;
-    this.externalServiceSlug4k = null;
-    this.ratingKey = null;
-    this.ratingKey4k = null;
+  public resetServiceData(is4k?: boolean): void {
+    if (is4k === undefined || !is4k) {
+      this.serviceId = null;
+      this.externalServiceId = null;
+      this.externalServiceSlug = null;
+      this.ratingKey = null;
+    }
+    if (is4k === undefined || is4k) {
+      this.serviceId4k = null;
+      this.externalServiceId4k = null;
+      this.externalServiceSlug4k = null;
+      this.ratingKey4k = null;
+    }
   }
 
   @AfterLoad()
