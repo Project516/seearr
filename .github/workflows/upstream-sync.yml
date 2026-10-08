@@ -2,82 +2,123 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Upstream Sync
 
+# Opens a PR that merges the latest stable Seerr release into master. A clean
+# merge gets auto-merge armed; a conflicting one is committed with its markers
+# and left open for manual resolution.
+#
+# AUTOUPDATE_TOKEN is a PAT with the workflow scope: upstream releases touch
+# .github/workflows/, which the built-in token cannot push, and PRs opened by
+# the built-in token do not trigger CI.
+#
+# Upstream history must stay intact, so this PR is merged with a merge commit,
+# never squashed.
+
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 6 * * *' # 06:00 UTC (00:00 CST, 01:00 CDT)
   workflow_dispatch:
 
 permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: upstream-sync
+  cancel-in-progress: false
+
 jobs:
   sync:
-    name: Sync with upstream
+    name: Sync upstream stable release
     runs-on: ubuntu-24.04
     steps:
+      - name: Require AUTOUPDATE_TOKEN
+        env:
+          AUTOUPDATE_TOKEN: ${{ secrets.AUTOUPDATE_TOKEN }}
+        run: |
+          [ -n "$AUTOUPDATE_TOKEN" ] || { echo "::error::The AUTOUPDATE_TOKEN secret is not set."; exit 1; }
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
+          ref: master
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AUTOUPDATE_TOKEN }}
 
-      - name: Fetch upstream
-        run: |
-          git remote add upstream https://github.com/seerr-team/seerr.git || true
-          git fetch upstream develop
-
-      - name: Check for new commits
-        id: check
-        run: |
-          LOCAL=$(git rev-parse HEAD)
-          UPSTREAM=$(git rev-parse upstream/develop)
-          MERGE_BASE=$(git merge-base HEAD upstream/develop)
-
-          if [ "$MERGE_BASE" = "$UPSTREAM" ]; then
-            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
-            echo "No new upstream commits."
-          else
-            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
-            COMMITS=$(git rev-list --count "$MERGE_BASE".."$UPSTREAM")
-            echo "Found $COMMITS new upstream commit(s)."
-            echo "upstream_sha=$UPSTREAM" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Create sync branch and PR
-        if: steps.check.outputs.up_to_date == 'false'
+      - name: Open the upstream update and arm auto-merge
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.AUTOUPDATE_TOKEN }}
+          # gh would otherwise pick the "upstream" remote as the base repo.
+          GH_REPO: ${{ github.repository }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          set -euo pipefail
 
-          BRANCH="upstream-sync-$(date +%Y%m%d-%H%M%S)"
-          git checkout -b "$BRANCH"
-          git merge upstream/develop --no-edit -m "Merge upstream seerr-team/seerr@develop
+          upstream="https://github.com/seerr-team/seerr.git"
 
-          Synced to $(echo ${{ steps.check.outputs.upstream_sha }} | head -c 7)" || MERGE_EXIT=$?
+          tag="$(gh api repos/seerr-team/seerr/releases/latest --jq .tag_name)"
+          echo "Latest upstream stable release: $tag"
 
-          if [ "${MERGE_EXIT:-0}" -ne 0 ]; then
-            echo "Merge conflict detected. Skipping PR creation."
-            git merge --abort
+          git remote add upstream "$upstream" 2>/dev/null || git remote set-url upstream "$upstream"
+          git fetch --no-tags upstream "refs/tags/${tag}:refs/upstream/${tag}"
+          tagsha="$(git rev-parse "refs/upstream/${tag}^{commit}")"
+
+          if git merge-base --is-ancestor "$tagsha" HEAD; then
+            echo "master already contains ${tag}; nothing to do."
             exit 0
           fi
 
-          git push origin "$BRANCH"
+          branch="upstream-sync/${tag}"
 
-          gh pr create \
-            --title "Upstream sync $(date +%Y-%m-%d)" \
-            --body "$(cat <<EOF
-          ## Upstream Sync
+          # Leave an open PR alone so a daily force-push does not overwrite a
+          # manual conflict resolution.
+          if [ "$(gh pr view "$branch" --json state --jq .state 2>/dev/null || true)" = "OPEN" ]; then
+            echo "A pull request for ${tag} is already open; nothing to do."
+            exit 0
+          fi
 
-          Merges latest changes from [seerr-team/seerr](https://github.com/seerr-team/seerr) (\`develop\` branch).
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          Upstream SHA: \`${{ steps.check.outputs.upstream_sha }}\`
+          # Merge on the runner so the push is a normal branch update; pushing
+          # the upstream commit directly is rejected for its workflow files.
+          git checkout -B "$branch" master
+          if git merge --no-edit -m "chore: merge upstream seerr ${tag}" "$tagsha"; then
+            conflicts=0
+          else
+            conflicts=1
+            git add -A
+            git commit --no-edit
+          fi
+          git push --force origin "$branch"
 
-          Please review for conflicts with local customizations before merging.
-          EOF
-          )" \
-            --head "$BRANCH" \
-            --base master \
-            --label "upstream-sync"
+          if ! gh pr view "$branch" --json number >/dev/null 2>&1; then
+            printf '%s\n' \
+              "## Description" \
+              "" \
+              "Automated sync of upstream Seerr stable \`${tag}\` into \`master\`." \
+              "" \
+              "When the merge is clean, auto-merge is armed and GitHub merges this PR after the required checks pass. When it conflicts, the conflict markers are committed to the branch for manual resolution. Merge with a merge commit, never squash, so upstream history is kept." \
+              "" \
+              "## How Has This Been Tested?" \
+              "" \
+              "CI on this pull request." \
+              "" \
+              "## Checklist:" \
+              "" \
+              "- [x] I have read and followed the contribution guidelines." \
+              > pr-body.md
+            # A fresh branch can take a moment to show up in the PR API.
+            for _ in $(seq 1 10); do
+              gh pr create \
+                --base master --head "$branch" \
+                --title "chore: merge upstream seerr ${tag}" \
+                --body-file pr-body.md && break
+              sleep 6
+            done
+          fi
+
+          if [ "$conflicts" -eq 0 ]; then
+            .github/scripts/arm-automerge.sh "$branch" merge
+            echo "Auto-merge armed for ${tag}."
+          else
+            echo "::warning::${tag} does not merge cleanly into master. The conflict markers are committed to the pull request, which has been left open for manual resolution."
+          fi
