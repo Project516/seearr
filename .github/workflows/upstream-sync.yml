@@ -69,8 +69,8 @@ jobs:
           branch="upstream-sync/${tag}"
 
           # Leave an open PR alone so a daily force-push does not overwrite a
-          # manual conflict resolution.
-          if [ "$(gh pr view "$branch" --json state --jq .state 2>/dev/null || true)" = "OPEN" ]; then
+          # manual conflict resolution. Closed PRs for the branch are ignored.
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq '.[].number')" ]; then
             echo "A pull request for ${tag} is already open; nothing to do."
             exit 0
           fi
@@ -90,34 +90,34 @@ jobs:
           fi
           git push --force origin "$branch"
 
-          if ! gh pr view "$branch" --json number >/dev/null 2>&1; then
-            printf '%s\n' \
-              "## Description" \
-              "" \
-              "Automated sync of upstream Seerr stable \`${tag}\` into \`master\`." \
-              "" \
-              "When the merge is clean, auto-merge is armed and GitHub merges this PR after the required checks pass. When it conflicts, the conflict markers are committed to the branch for manual resolution. Merge with a merge commit, never squash, so upstream history is kept." \
-              "" \
-              "## How Has This Been Tested?" \
-              "" \
-              "CI on this pull request." \
-              "" \
-              "## Checklist:" \
-              "" \
-              "- [x] I have read and followed the contribution guidelines." \
-              > pr-body.md
-            # A fresh branch can take a moment to show up in the PR API.
-            for _ in $(seq 1 10); do
-              gh pr create \
-                --base master --head "$branch" \
-                --title "chore: merge upstream seerr ${tag}" \
-                --body-file pr-body.md && break
-              sleep 6
-            done
-          fi
+          printf '%s\n' \
+            "## Description" \
+            "" \
+            "Automated sync of upstream Seerr stable \`${tag}\` into \`master\`." \
+            "" \
+            "When the merge is clean, auto-merge is armed and GitHub merges this PR after the required checks pass. When it conflicts, the conflict markers are committed to the branch for manual resolution. Merge with a merge commit, never squash, so upstream history is kept." \
+            "" \
+            "## How Has This Been Tested?" \
+            "" \
+            "CI on this pull request." \
+            "" \
+            "## Checklist:" \
+            "" \
+            "- [x] I have read and followed the contribution guidelines." \
+            > pr-body.md
+          # A fresh branch can take a moment to show up in the PR API.
+          pr=""
+          for _ in $(seq 1 10); do
+            pr="$(gh pr create \
+              --base master --head "$branch" \
+              --title "chore: merge upstream seerr ${tag}" \
+              --body-file pr-body.md)" && break
+            sleep 6
+          done
+          [ -n "$pr" ] || { echo "::error::Could not open the pull request for ${tag}."; exit 1; }
 
           if [ "$conflicts" -eq 0 ]; then
-            .github/scripts/arm-automerge.sh "$branch" merge
+            .github/scripts/arm-automerge.sh "$pr" merge
             echo "Auto-merge armed for ${tag}."
           else
             echo "::warning::${tag} does not merge cleanly into master. The conflict markers are committed to the pull request, which has been left open for manual resolution."
