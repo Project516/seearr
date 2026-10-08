@@ -67,10 +67,6 @@ That's it. A common misconception we've encountered from users unfamiliar with t
 
 Docker's own documentation recommends this exact approach for bind mount permissions: https://docs.docker.com/engine/storage/bind-mounts/.
 
-:::note
-Unraid users may prefer to match the container user to their existing share permissions rather than chowning their data directory. Our [Unraid documentation](/getting-started/third-parties/unraid) covers both approaches. Note that third-party platform support is community-maintained and not officially supported by the Seerr team.
-:::
-
 ## Why we won't add PUID/PGID support
 
 Adding `PUID`/`PGID` support would require us to deliberately ship an image that starts as root. In a project with hundreds of npm dependencies, a single compromised package in a supply chain attack could, under that setup, gain root-level access to your server. The convenience of skipping one `chown` command does not come close to justifying that tradeoff.
