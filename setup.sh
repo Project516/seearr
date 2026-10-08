@@ -49,12 +49,10 @@ check_prereqs() {
 install_and_build() {
   cd "$APP_DIR"
 
-  if [ -d "node_modules" ]; then
-    info "node_modules exists — skipping install."
-  else
-    info "Installing dependencies..."
-    pnpm install --frozen-lockfile
-  fi
+  # Always run: dependencies change between versions, and pnpm finishes in
+  # seconds when nothing changed.
+  info "Installing dependencies..."
+  pnpm install --frozen-lockfile
 
   # Rebuild when artifacts are missing or older than any source change
   if [ -f ".next/BUILD_ID" ] && [ -f "dist/index.js" ]; then
