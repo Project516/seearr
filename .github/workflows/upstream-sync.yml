@@ -2,8 +2,9 @@
 # yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
 name: Upstream Sync
 
-# Opens a PR that merges the latest stable Seerr release into master. A clean
-# merge gets auto-merge armed; a conflicting one is committed with its markers
+# Opens a PR that merges the latest stable Seerr release into master. Files the
+# fork deleted and a lockfile-only conflict are resolved automatically. A clean
+# merge gets auto-merge armed; any other conflict is committed with its markers
 # and left open for manual resolution. The merge bumps package.json, which
 # tag-release.yml turns into a release.
 #
@@ -38,6 +39,14 @@ jobs:
           ref: master
           fetch-depth: 0
           token: ${{ secrets.AUTOUPDATE_TOKEN }}
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
 
       - name: Open the upstream update and arm auto-merge
         env:
@@ -76,11 +85,21 @@ jobs:
           # Merge on the runner so the push is a normal branch update; pushing
           # the upstream commit directly is rejected for its workflow files.
           git checkout -B "$branch" master
-          if git merge --no-edit -m "chore: merge upstream seerr ${tag}" "$tagsha"; then
-            conflicts=0
-          else
-            conflicts=1
-            git add -A
+          conflicts=0
+          if ! git merge --no-edit -m "chore: merge upstream seerr ${tag}" "$tagsha"; then
+            # Files the fork deleted stay deleted.
+            git status --porcelain | awk '$1 == "DU" {print $2}' | xargs -r git rm -q --
+            # A lockfile that is the last conflict is regenerated from the
+            # merged package.json.
+            if [ "$(git diff --name-only --diff-filter=U)" = "pnpm-lock.yaml" ]; then
+              git checkout --theirs pnpm-lock.yaml
+              pnpm install --lockfile-only --ignore-scripts
+              git add pnpm-lock.yaml
+            fi
+            if [ -n "$(git diff --name-only --diff-filter=U)" ]; then
+              conflicts=1
+              git add -A
+            fi
             git commit --no-edit
           fi
           git push --force origin "$branch"
