@@ -4,7 +4,8 @@ name: Upstream Sync
 
 # Opens a PR that merges the latest stable Seerr release into master. A clean
 # merge gets auto-merge armed; a conflicting one is committed with its markers
-# and left open for manual resolution.
+# and left open for manual resolution. The merge bumps package.json, which
+# tag-release.yml turns into a release.
 #
 # AUTOUPDATE_TOKEN is a PAT with the workflow scope: upstream releases touch
 # .github/workflows/, which the built-in token cannot push, and PRs opened by
