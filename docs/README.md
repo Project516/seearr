@@ -36,4 +36,4 @@ It also adds a portable bare-metal setup (`setup.sh` and `start.sh`), a first-ru
 
 The fork tracks upstream [Seerr](https://github.com/seerr-team/seerr) closely. A daily GitHub Actions workflow merges new upstream commits, so fixes and features from Seerr land here shortly after release.
 
-Based on [Seerr](https://github.com/seerr-team/seerr) v3.4.1.
+Based on [Seerr](https://github.com/seerr-team/seerr) v3.5.0.
