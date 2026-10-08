@@ -1,6 +1,7 @@
 import PlexAPI from '@server/api/plexapi';
 import PlexTvAPI from '@server/api/plextv';
 import TautulliAPI from '@server/api/tautulli';
+import { ApiErrorCode } from '@server/constants/error';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { MediaRequest } from '@server/entity/MediaRequest';
@@ -34,6 +35,7 @@ import { rescheduleJob } from 'node-schedule';
 import path from 'path';
 import semver from 'semver';
 import { URL } from 'url';
+import { z } from 'zod';
 import metadataRoutes from './metadata';
 import notificationRoutes from './notifications';
 import radarrRoutes from './radarr';
@@ -46,6 +48,10 @@ settingsRoutes.use('/radarr', radarrRoutes);
 settingsRoutes.use('/sonarr', sonarrRoutes);
 settingsRoutes.use('/discover', discoverSettingRoutes);
 settingsRoutes.use('/metadatas', metadataRoutes);
+
+const libraryUpdateSchema = z.object({
+  enabled: z.boolean(),
+});
 
 const filteredMainSettings = (
   user: User,
@@ -224,28 +230,54 @@ settingsRoutes.get('/plex/devices/servers', async (req, res, next) => {
   }
 });
 
-settingsRoutes.get('/plex/library', async (req, res) => {
+settingsRoutes.get('/plex/library', (_req, res) => {
   const settings = getSettings();
 
-  if (req.query.sync) {
-    const userRepository = getRepository(User);
-    const admin = await userRepository.findOneOrFail({
-      select: { id: true, plexToken: true },
-      where: { id: 1 },
-    });
-    const plexapi = new PlexAPI({ plexToken: admin.plexToken });
+  return res.status(200).json(settings.plex.libraries);
+});
 
-    await plexapi.syncLibraries();
+settingsRoutes.put('/plex/library/:libraryId', async (req, res, next) => {
+  const settings = getSettings();
+
+  const bodyResult = libraryUpdateSchema.safeParse(req.body);
+
+  if (!bodyResult.success) {
+    return next({ status: 400, message: 'Invalid request body.' });
   }
 
-  const enabledLibraries = req.query.enable
-    ? (req.query.enable as string).split(',')
-    : [];
-  settings.plex.libraries = settings.plex.libraries.map((library) => ({
-    ...library,
-    enabled: enabledLibraries.includes(library.id),
-  }));
+  const library = settings.plex.libraries.find(
+    (l) => l.id === req.params.libraryId
+  );
+
+  if (!library) {
+    return next({ status: 404, message: 'Library does not exist.' });
+  }
+
+  library.enabled = bodyResult.data.enabled;
   await settings.save();
+
+  return res.status(200).json(library);
+});
+
+settingsRoutes.post('/plex/library/sync', async (_req, res, next) => {
+  const settings = getSettings();
+
+  const userRepository = getRepository(User);
+  const admin = await userRepository.findOneOrFail({
+    select: { id: true, plexToken: true },
+    where: { id: 1 },
+  });
+  const plexapi = new PlexAPI({ plexToken: admin.plexToken });
+
+  try {
+    await plexapi.syncLibraries();
+  } catch (e) {
+    return next({
+      status: e.statusCode ?? 500,
+      message: e.errorCode ?? ApiErrorCode.Unknown,
+    });
+  }
+
   return res.status(200).json(settings.plex.libraries);
 });
 

@@ -10,7 +10,10 @@ import useToasts from '@app/hooks/useToasts';
 import { Permission, useUser } from '@app/hooks/useUser';
 import globalMessages from '@app/i18n/globalMessages';
 import defineMessages from '@app/utils/defineMessages';
-import { refreshIntervalHelper } from '@app/utils/refreshIntervalHelper';
+import {
+  getRequestDownloadStatus,
+  refreshIntervalHelper,
+} from '@app/utils/refreshIntervalHelper';
 import { withProperties } from '@app/utils/typeHelpers';
 import {
   ArrowPathIcon,
@@ -72,6 +75,15 @@ const RequestCardError = ({ requestData }: RequestCardErrorProps) => {
     mediaUrl: requestData?.media?.mediaUrl,
     mediaUrl4k: requestData?.media?.mediaUrl4k,
   });
+
+  const requestDownloadStatus = getRequestDownloadStatus(
+    requestData?.media?.[
+      requestData?.is4k ? 'downloadStatus4k' : 'downloadStatus'
+    ],
+    requestData?.type === 'tv'
+      ? (requestData?.seasons ?? []).map((season) => season.seasonNumber)
+      : []
+  );
 
   const deleteRequest = async () => {
     await axios.delete(`/api/v1/media/${requestData?.media.id}`);
@@ -147,23 +159,9 @@ const RequestCardError = ({ requestData }: RequestCardErrorProps) => {
                           requestData.is4k ? 'status4k' : 'status'
                         ]
                       }
-                      downloadItem={
-                        requestData.media[
-                          requestData.is4k
-                            ? 'downloadStatus4k'
-                            : 'downloadStatus'
-                        ]
-                      }
+                      downloadItem={requestDownloadStatus}
                       title={intl.formatMessage(messages.unknowntitle)}
-                      inProgress={
-                        (
-                          requestData.media[
-                            requestData.is4k
-                              ? 'downloadStatus4k'
-                              : 'downloadStatus'
-                          ] ?? []
-                        ).length > 0
-                      }
+                      inProgress={requestDownloadStatus.length > 0}
                       is4k={requestData.is4k}
                       mediaType={requestData.type}
                       plexUrl={requestData.is4k ? plexUrl4k : plexUrl}
@@ -323,6 +321,13 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
     return <RequestCardError requestData={requestData} />;
   }
 
+  const requestDownloadStatus = getRequestDownloadStatus(
+    requestData.media[requestData.is4k ? 'downloadStatus4k' : 'downloadStatus'],
+    requestData.type === 'tv'
+      ? requestData.seasons.map((season) => season.seasonNumber)
+      : []
+  );
+
   return (
     <>
       <RequestModal
@@ -453,19 +458,9 @@ const RequestCard = ({ request, onTitleData }: RequestCardProps) => {
                 status={
                   requestData.media[requestData.is4k ? 'status4k' : 'status']
                 }
-                downloadItem={
-                  requestData.media[
-                    requestData.is4k ? 'downloadStatus4k' : 'downloadStatus'
-                  ]
-                }
+                downloadItem={requestDownloadStatus}
                 title={isMovie(title) ? title.title : title.name}
-                inProgress={
-                  (
-                    requestData.media[
-                      requestData.is4k ? 'downloadStatus4k' : 'downloadStatus'
-                    ] ?? []
-                  ).length > 0
-                }
+                inProgress={requestDownloadStatus.length > 0}
                 is4k={requestData.is4k}
                 tmdbId={requestData.media.tmdbId}
                 mediaType={requestData.type}
