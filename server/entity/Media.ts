@@ -1,12 +1,17 @@
 import RadarrAPI from '@server/api/servarr/radarr';
 import SonarrAPI from '@server/api/servarr/sonarr';
-import { MediaStatus, MediaType } from '@server/constants/media';
+import {
+  MediaRequestStatus,
+  MediaStatus,
+  MediaType,
+} from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import { Blocklist } from '@server/entity/Blocklist';
 import type { User } from '@server/entity/User';
 import { Watchlist } from '@server/entity/Watchlist';
 import type { DownloadingItem } from '@server/lib/downloadtracker';
 import downloadTracker from '@server/lib/downloadtracker';
+import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { DbAwareColumn, resolveDbType } from '@server/utils/DbColumnHelper';
@@ -29,7 +34,8 @@ import Season from './Season';
 class Media {
   public static async getRelatedMedia(
     user: User | undefined,
-    items: { tmdbId: number; mediaType: string }[]
+    items: { tmdbId: number; mediaType: string }[],
+    { includeActiveRequest = false }: { includeActiveRequest?: boolean } = {}
   ): Promise<Media[]> {
     const mediaRepository = getRepository(Media);
 
@@ -47,13 +53,40 @@ class Media {
           'watchlist',
           'media.id= watchlist.media and watchlist.requestedBy = :userId',
           { userId: user?.id }
-        ) //,
+        )
         .where(' media.tmdbId in (:...finalIds)', { finalIds })
         .getMany();
 
-      return media.filter((m) =>
+      const relatedMedia = media.filter((m) =>
         items.some((i) => i.tmdbId === m.tmdbId && i.mediaType === m.mediaType)
       );
+
+      if (
+        includeActiveRequest &&
+        getSettings().main.hideRequested &&
+        relatedMedia.length > 0
+      ) {
+        const activeRequestMediaIds = await mediaRepository
+          .createQueryBuilder('media')
+          .select('media.id', 'id')
+          .distinct(true)
+          .innerJoin('media.requests', 'request')
+          .where('media.id IN (:...mediaIds)', {
+            mediaIds: relatedMedia.map((m) => m.id),
+          })
+          .andWhere('request.status IN (:...statuses)', {
+            statuses: [MediaRequestStatus.PENDING, MediaRequestStatus.APPROVED],
+          })
+          .getRawMany<{ id: number }>();
+
+        const activeIds = new Set(activeRequestMediaIds.map((row) => row.id));
+
+        relatedMedia.forEach((m) => {
+          m.hasActiveRequest = activeIds.has(m.id);
+        });
+      }
+
+      return relatedMedia;
     } catch (e) {
       logger.error(e.message);
       return [];
@@ -179,6 +212,7 @@ class Media {
 
   public serviceUrl?: string;
   public serviceUrl4k?: string;
+  public hasActiveRequest?: boolean;
   public downloadStatus?: DownloadingItem[] = [];
   public downloadStatus4k?: DownloadingItem[] = [];
 
@@ -334,6 +368,38 @@ class Media {
         );
       }
     }
+  }
+
+  public filter(user?: User): Media {
+    const canViewIssues =
+      user?.hasPermission(
+        [
+          Permission.MANAGE_ISSUES,
+          Permission.VIEW_ISSUES,
+          Permission.CREATE_ISSUES,
+        ],
+        { type: 'or' }
+      ) ?? false;
+
+    return {
+      ...this,
+      requests: (this.requests ?? []).map((request) => ({
+        ...request,
+        requestedBy: request.requestedBy?.filter(),
+        modifiedBy: request.modifiedBy?.filter(),
+      })),
+      // the detail pages call issues.filter() without a null check
+      issues: canViewIssues
+        ? (this.issues ?? []).map(
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            ({ comments, problemSeason, problemEpisode, ...issue }) => ({
+              ...issue,
+              createdBy: issue.createdBy?.filter(),
+              modifiedBy: issue.modifiedBy?.filter(),
+            })
+          )
+        : [],
+    } as Media;
   }
 }
 

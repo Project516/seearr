@@ -6,7 +6,6 @@ import Modal from '@app/components/Common/Modal';
 import PageTitle from '@app/components/Common/PageTitle';
 import Table from '@app/components/Common/Table';
 import useLocale from '@app/hooks/useLocale';
-import useSettings from '@app/hooks/useSettings';
 
 import useToasts from '@app/hooks/useToasts';
 import globalMessages from '@app/i18n/globalMessages';
@@ -15,7 +14,6 @@ import { formatBytes } from '@app/utils/numberHelpers';
 import { Transition } from '@headlessui/react';
 import { PlayIcon, StopIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { PencilIcon } from '@heroicons/react/24/solid';
-import { MediaServerType } from '@server/constants/server';
 import type {
   CacheItem,
   CacheResponse,
@@ -201,7 +199,6 @@ const SettingsJobs = () => {
     scheduleSeconds: 30,
   });
   const [isSaving, setIsSaving] = useState(false);
-  const settings = useSettings();
 
   if (!data && !error) {
     return <LoadingSpinner />;
@@ -562,33 +559,22 @@ const SettingsJobs = () => {
             </tr>
           </thead>
           <Table.TBody>
-            {cacheData?.apiCaches
-              ?.filter(
-                (cache) =>
-                  !(
-                    settings.currentSettings.mediaServerType !==
-                      MediaServerType.PLEX && cache.id === 'plexguid'
-                  )
-              )
-              .map((cache) => (
-                <tr key={`cache-list-${cache.id}`}>
-                  <Table.TD>{cache.name}</Table.TD>
-                  <Table.TD>{intl.formatNumber(cache.stats.hits)}</Table.TD>
-                  <Table.TD>{intl.formatNumber(cache.stats.misses)}</Table.TD>
-                  <Table.TD>{intl.formatNumber(cache.stats.keys)}</Table.TD>
-                  <Table.TD>{formatBytes(cache.stats.ksize)}</Table.TD>
-                  <Table.TD>{formatBytes(cache.stats.vsize)}</Table.TD>
-                  <Table.TD alignText="right">
-                    <Button
-                      buttonType="danger"
-                      onClick={() => flushCache(cache)}
-                    >
-                      <TrashIcon />
-                      <span>{intl.formatMessage(messages.flushcache)}</span>
-                    </Button>
-                  </Table.TD>
-                </tr>
-              ))}
+            {cacheData?.apiCaches?.map((cache) => (
+              <tr key={`cache-list-${cache.id}`}>
+                <Table.TD>{cache.name}</Table.TD>
+                <Table.TD>{intl.formatNumber(cache.stats.hits)}</Table.TD>
+                <Table.TD>{intl.formatNumber(cache.stats.misses)}</Table.TD>
+                <Table.TD>{intl.formatNumber(cache.stats.keys)}</Table.TD>
+                <Table.TD>{formatBytes(cache.stats.ksize)}</Table.TD>
+                <Table.TD>{formatBytes(cache.stats.vsize)}</Table.TD>
+                <Table.TD alignText="right">
+                  <Button buttonType="danger" onClick={() => flushCache(cache)}>
+                    <TrashIcon />
+                    <span>{intl.formatMessage(messages.flushcache)}</span>
+                  </Button>
+                </Table.TD>
+              </tr>
+            ))}
           </Table.TBody>
         </Table>
       </div>

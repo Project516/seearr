@@ -32,7 +32,18 @@ authRoutes.get('/me', isAuthenticated(), async (req, res) => {
     logger.warn(`User ${user.username} has no valid email address`);
   }
 
-  return res.status(200).json(user);
+  return res.status(200).json({
+    ...user.toJSON(),
+    settings: user.settings && {
+      locale: user.settings.locale,
+      discoverRegion: user.settings.discoverRegion,
+      streamingRegion: user.settings.streamingRegion,
+      originalLanguage: user.settings.originalLanguage,
+      notificationTypes: user.settings.notificationTypes,
+      watchlistSyncMovies: user.settings.watchlistSyncMovies,
+      watchlistSyncTv: user.settings.watchlistSyncTv,
+    },
+  });
 });
 
 // Setup endpoint: create first admin user (only when no users exist)

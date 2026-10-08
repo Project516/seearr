@@ -2,7 +2,10 @@ import RadarrAPI, { type RadarrMovie } from '@server/api/servarr/radarr';
 import type { SonarrSeason, SonarrSeries } from '@server/api/servarr/sonarr';
 import SonarrAPI from '@server/api/servarr/sonarr';
 import TheMovieDb from '@server/api/themoviedb';
-import type { TmdbTvDetails } from '@server/api/themoviedb/interfaces';
+import type {
+  TmdbTvDetails,
+  TmdbTvScanDetails,
+} from '@server/api/themoviedb/interfaces';
 import { MediaRequestStatus, MediaStatus } from '@server/constants/media';
 import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
@@ -137,14 +140,14 @@ class AvailabilitySync {
             ...sonarrSeasonsMap4k,
           ]);
 
-          let tvShow: TmdbTvDetails | undefined;
+          let tvShow: TmdbTvScanDetails | TmdbTvDetails | undefined;
           try {
             if (media.tmdbId) {
-              tvShow = await this.tmdb.getTvShow({
+              tvShow = await this.tmdb.getTvShowForScan({
                 tvId: Number(media.tmdbId),
               });
             } else if (media.tvdbId) {
-              tvShow = await this.tmdb.getShowByTvdbId({
+              tvShow = await this.tmdb.getShowByTvdbIdForScan({
                 tvdbId: Number(media.tvdbId),
               });
             }
