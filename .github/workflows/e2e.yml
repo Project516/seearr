@@ -13,6 +13,10 @@ on:
     branches:
       - master
   workflow_dispatch:
+    inputs:
+      upgrade_from:
+        description: Git ref the upgrade job starts from (default latest release tag)
+        required: false
 
 permissions:
   contents: read
@@ -53,15 +57,9 @@ jobs:
         run: pnpm build
 
       - name: Start Seearr
-        run: |
-          mkdir -p "$RUNNER_TEMP/config"
-          CONFIG_DIRECTORY="$RUNNER_TEMP/config" nohup pnpm start > "$RUNNER_TEMP/seearr.log" 2>&1 &
-          for _ in $(seq 1 60); do
-            curl -fs http://localhost:5055/api/v1/status > /dev/null && exit 0
-            sleep 2
-          done
-          cat "$RUNNER_TEMP/seearr.log"
-          exit 1
+        env:
+          CONFIG_DIRECTORY: ${{ runner.temp }}/config
+        run: e2e/serve.sh . "$RUNNER_TEMP/seearr.log"
 
       - name: Install Playwright
         working-directory: e2e
@@ -82,4 +80,76 @@ jobs:
             e2e/playwright-report
             e2e/test-results
             ${{ runner.temp }}/seearr.log
+          retention-days: 7
+
+  upgrade:
+    name: E2E upgrade
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    env:
+      CYPRESS_INSTALL_BINARY: '0'
+      UPGRADE_FROM: ${{ inputs.upgrade_from }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: package.json
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            e2e/pnpm-lock.yaml
+
+      - name: Install Playwright
+        working-directory: e2e
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+
+      - name: Build the version to upgrade from
+        run: |
+          echo "CONFIG_DIRECTORY=$RUNNER_TEMP/config" >> "$GITHUB_ENV"
+          from="${UPGRADE_FROM:-$(git describe --tags --abbrev=0 --match 'v[0-9]*')}"
+          echo "Upgrading from ${from}"
+          git worktree add "$RUNNER_TEMP/old" "$from"
+          cd "$RUNNER_TEMP/old"
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Set up an account on the old version
+        run: |
+          mkdir -p "$CONFIG_DIRECTORY"
+          pid="$(e2e/serve.sh "$RUNNER_TEMP/old" "$RUNNER_TEMP/old.log")"
+          (cd e2e && pnpm test --grep "first-run setup")
+          kill "$pid"
+          while curl -fs http://localhost:5055/api/v1/status > /dev/null; do sleep 1; done
+
+      - name: Build this version
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Sign in after upgrading
+        run: |
+          e2e/serve.sh . "$RUNNER_TEMP/new.log" > /dev/null
+          cd e2e && pnpm test --grep "signs in|admin pages"
+
+      - name: Upload report and server logs
+        if: failure()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-upgrade-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+            ${{ runner.temp }}/old.log
+            ${{ runner.temp }}/new.log
           retention-days: 7
