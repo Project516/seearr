@@ -23,10 +23,7 @@
     "typecheck": "pnpm typecheck:server && pnpm typecheck:client",
     "typecheck:server": "tsc --project server/tsconfig.json --noEmit",
     "typecheck:client": "tsc --noEmit",
-    "prepare": "node bin/prepare.mjs",
-    "cypress:open": "cypress open",
-    "cypress:prepare": "ts-node -r tsconfig-paths/register --files --project server/tsconfig.json server/scripts/prepareTestDb.ts",
-    "cypress:build": "pnpm build && pnpm cypress:prepare"
+    "prepare": "node bin/prepare.mjs"
   },
   "repository": {
     "type": "git",
@@ -151,7 +148,6 @@
     "commitizen": "4.3.1",
     "copyfiles": "2.4.1",
     "cy-mobile-commands": "0.3.0",
-    "cypress": "15.13.1",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "9.39.3",
     "eslint-config-next": "16.2.6",
@@ -206,7 +202,6 @@
     "onlyBuiltDependencies": [
       "@swc/core",
       "bcrypt",
-      "cypress",
       "sharp",
       "sqlite3"
     ],
