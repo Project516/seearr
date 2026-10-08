@@ -9,7 +9,6 @@ import PageTitle from '@app/components/Common/PageTitle';
 import SensitiveInput from '@app/components/Common/SensitiveInput';
 import Table from '@app/components/Common/Table';
 import BulkEditModal from '@app/components/UserList/BulkEditModal';
-import PlexImportModal from '@app/components/UserList/PlexImportModal';
 import useDebouncedState from '@app/hooks/useDebouncedState';
 import useSettings from '@app/hooks/useSettings';
 import useToasts from '@app/hooks/useToasts';
@@ -26,7 +25,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-  InboxArrowDownIcon,
   MagnifyingGlassIcon,
   PencilIcon,
   UserPlusIcon,
@@ -46,7 +44,6 @@ import * as Yup from 'yup';
 const messages = defineMessages('components.UserList', {
   users: 'Users',
   userlist: 'User List',
-  importfrommediaserver: 'Import {mediaServerName} Users',
   user: 'User',
   totalrequests: 'Requests',
   accounttype: 'Type',
@@ -156,7 +153,6 @@ const UserList = () => {
   };
 
   const [isDeleting, setDeleting] = useState(false);
-  const [showImportModal, setShowImportModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{
     isOpen: boolean;
     user?: User;
@@ -610,25 +606,6 @@ const UserList = () => {
         />
       </Transition>
 
-      <Transition
-        as="div"
-        enter="transition-opacity duration-300"
-        enterFrom="opacity-0"
-        enterTo="opacity-100"
-        leave="transition-opacity duration-300"
-        leaveFrom="opacity-100"
-        leaveTo="opacity-0"
-        show={showImportModal}
-      >
-        <PlexImportModal
-          onCancel={() => setShowImportModal(false)}
-          onComplete={() => {
-            setShowImportModal(false);
-            revalidate();
-          }}
-        />
-      </Transition>
-
       <div className="flex flex-col justify-between lg:flex-row lg:items-end">
         <Header>{intl.formatMessage(messages.userlist)}</Header>
         <div className="mt-2 flex flex-grow flex-col lg:flex-grow-0 lg:flex-row">
@@ -640,18 +617,6 @@ const UserList = () => {
             >
               <UserPlusIcon />
               <span>{intl.formatMessage(messages.createlocaluser)}</span>
-            </Button>
-            <Button
-              className="flex-grow lg:mr-2"
-              buttonType="primary"
-              onClick={() => setShowImportModal(true)}
-            >
-              <InboxArrowDownIcon />
-              <span>
-                {intl.formatMessage(messages.importfrommediaserver, {
-                  mediaServerName: 'Plex',
-                })}
-              </span>
             </Button>
           </div>
           <div className="mb-2 flex flex-grow flex-col gap-2 sm:flex-row lg:mb-0 lg:flex-grow-0">

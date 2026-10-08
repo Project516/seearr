@@ -1,6 +1,4 @@
-import PlexTvAPI from '@server/api/plextv';
 import { ApiErrorCode } from '@server/constants/error';
-import { MediaServerType } from '@server/constants/server';
 import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
@@ -14,10 +12,7 @@ import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
 import { isAuthenticated } from '@server/middleware/auth';
 import { ApiError } from '@server/types/error';
-import {
-  isOwnProfile,
-  isOwnProfileOrAdmin,
-} from '@server/utils/profileMiddleware';
+import { isOwnProfileOrAdmin } from '@server/utils/profileMiddleware';
 import { Router } from 'express';
 import { Not } from 'typeorm';
 import { canMakePermissionsChange } from '.';
@@ -257,104 +252,6 @@ userSettingsRoutes.post<
     next({ status: 500, message: e.message });
   }
 });
-
-userSettingsRoutes.post<{ authToken: string }>(
-  '/linked-accounts/plex',
-  isOwnProfile(),
-  async (req, res) => {
-    const settings = getSettings();
-    const userRepository = getRepository(User);
-
-    if (!req.user) {
-      return res.status(404).json({ code: ApiErrorCode.Unauthorized });
-    }
-    // Make sure Plex login is enabled
-    if (settings.main.mediaServerType !== MediaServerType.PLEX) {
-      return res.status(500).json({ message: 'Plex login is disabled' });
-    }
-
-    // First we need to use this auth token to get the user's email from plex.tv
-    const plextv = new PlexTvAPI(req.body.authToken);
-    const account = await plextv.getUser();
-
-    // Do not allow linking of an already linked account
-    if (await userRepository.exist({ where: { plexId: account.id } })) {
-      return res.status(422).json({
-        message: 'This Plex account is already linked to a Seerr user',
-      });
-    }
-
-    const user = req.user;
-
-    // Emails do not match
-    if (user.email !== account.email) {
-      return res.status(422).json({
-        message:
-          'This Plex account is registered under a different email address.',
-      });
-    }
-
-    // valid plex user found, link to current user
-    user.userType = UserType.PLEX;
-    user.plexId = account.id;
-    user.plexUsername = account.username;
-    user.plexToken = account.authToken;
-    await userRepository.save(user);
-
-    return res.status(204).send();
-  }
-);
-
-userSettingsRoutes.delete<{ id: string }>(
-  '/linked-accounts/plex',
-  isOwnProfileOrAdmin(),
-  async (req, res) => {
-    const settings = getSettings();
-    const userRepository = getRepository(User);
-
-    // Make sure Plex login is enabled
-    if (settings.main.mediaServerType !== MediaServerType.PLEX) {
-      return res.status(500).json({ message: 'Plex login is disabled' });
-    }
-
-    try {
-      const user = await userRepository
-        .createQueryBuilder('user')
-        .addSelect('user.password')
-        .where({
-          id: Number(req.params.id),
-        })
-        .getOne();
-
-      if (!user) {
-        return res.status(404).json({ message: 'User not found.' });
-      }
-
-      if (user.id === 1) {
-        return res.status(400).json({
-          message:
-            'Cannot unlink media server accounts for the primary administrator.',
-        });
-      }
-
-      if (!user.email || !user.password) {
-        return res.status(400).json({
-          message: 'User does not have a local email or password set.',
-        });
-      }
-
-      user.userType = UserType.LOCAL;
-      user.plexId = null;
-      user.plexUsername = null;
-      user.plexToken = null;
-      await userRepository.save(user);
-
-      return res.status(204).send();
-    } catch (e) {
-      return res.status(500).json({ message: e.message });
-    }
-  }
-);
 
 userSettingsRoutes.get<{ id: string }, UserSettingsNotificationsResponse>(
   '/notifications',
