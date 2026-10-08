@@ -1,0 +1,49 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Tag Release
+
+# Pushes v<package.json version> when master gets a version that has no tag
+# yet, which starts release.yml. Uses AUTOUPDATE_TOKEN because a tag pushed
+# with the built-in token does not trigger other workflows.
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - package.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tag-release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    name: Tag new version
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require AUTOUPDATE_TOKEN
+        env:
+          AUTOUPDATE_TOKEN: ${{ secrets.AUTOUPDATE_TOKEN }}
+        run: |
+          [ -n "$AUTOUPDATE_TOKEN" ] || { echo "::error::The AUTOUPDATE_TOKEN secret is not set."; exit 1; }
+
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ secrets.AUTOUPDATE_TOKEN }}
+
+      - name: Push the version tag
+        run: |
+          set -euo pipefail
+          tag="v$(jq -r .version package.json)"
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null; then
+            echo "${tag} already exists; nothing to do."
+            exit 0
+          fi
+          git push origin "${GITHUB_SHA}:refs/tags/${tag}"
+          echo "Pushed ${tag} at ${GITHUB_SHA}."
