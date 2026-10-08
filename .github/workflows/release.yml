@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # Docker image references must be lowercase; github.repository is not.
+  IMAGE: ghcr.io/project516/seearr
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -136,7 +140,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6
         with:
-          images: ghcr.io/${{ github.repository }}
+          images: ${{ env.IMAGE }}
           tags: |
             type=semver,pattern={{raw}}
             type=semver,pattern=v{{major}}.{{minor}}
@@ -167,7 +171,7 @@ jobs:
           - name: Resolve manifest digest
             id: digests
             run: |
-              DIGEST=$(docker buildx imagetools inspect "ghcr.io/${{ github.repository }}:${{ env.VERSION }}" --format '{{json .Manifest.Digest}}' | tr -d '"')
+              DIGEST=$(docker buildx imagetools inspect "${{ env.IMAGE }}:${{ env.VERSION }}" --format '{{json .Manifest.Digest}}' | tr -d '"')
               echo "IMAGE_DIGEST=$DIGEST" >> $GITHUB_OUTPUT
 
           - name: Also tag :latest (non-pre-release only)
@@ -175,8 +179,8 @@ jobs:
             if: ${{ !contains(env.VERSION, '-') }}
             run: |
               docker buildx imagetools create \
-                -t ghcr.io/${{ github.repository }}:latest \
-                ghcr.io/${{ github.repository }}:${{ env.VERSION }}
+                -t ${{ env.IMAGE }}:latest \
+                ${{ env.IMAGE }}:${{ env.VERSION }}
 
   sign:
     name: Sign images and create SBOM attestations
@@ -211,19 +215,19 @@ jobs:
 
       - name: Sign images
         run: |
-          cosign sign --recursive "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}"
+          cosign sign --recursive "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}"
 
       - name: Generate SBOMs
         run: |
           trivy image --format cyclonedx --output seerr-ghcr-image-${{ env.VERSION }}.sbom \
-            "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}"
+            "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}"
 
       - name: Attest SBOMs
         run: |
           cosign attest \
             --type cyclonedx \
             --predicate seerr-ghcr-image-${{ env.VERSION }}.sbom \
-            "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}"
+            "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}"
 
       - name: Upload SBOMs
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -248,22 +252,22 @@ jobs:
       - parallel:
           - name: Verify signatures
             run: |
-              cosign verify "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}" \
+              cosign verify "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}" \
                 --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
                 --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 
-              cosign verify "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}" \
+              cosign verify "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}" \
                 --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
                 --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 
           - name: Verify attestations
             run: |
-              cosign verify-attestation "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}" \
+              cosign verify-attestation "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}" \
                 --type cyclonedx \
                 --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
                 --certificate-oidc-issuer "https://token.actions.githubusercontent.com" > /dev/null
 
-                cosign verify-attestation "ghcr.io/${{ github.repository }}@${{ needs.publish.outputs.image_digest }}" \
+                cosign verify-attestation "${{ env.IMAGE }}@${{ needs.publish.outputs.image_digest }}" \
                 --type cyclonedx \
                 --certificate-identity "https://github.com/${{ github.workflow_ref }}" \
                 --certificate-oidc-issuer "https://token.actions.githubusercontent.com" > /dev/null
