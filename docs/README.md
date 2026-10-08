@@ -34,6 +34,6 @@ Seearr strips away media server integrations (Plex, Jellyfin, Emby) to focus pur
 
 It also adds a portable bare-metal setup (`setup.sh` and `start.sh`), a first-run wizard that creates your admin account without any media server sign-in, and multi-arch Docker images published to GitHub Container Registry.
 
-The fork tracks upstream [Seerr](https://github.com/seerr-team/seerr) closely. A daily GitHub Actions workflow merges new upstream commits, so fixes and features from Seerr land here shortly after release.
+The fork tracks upstream [Seerr](https://github.com/seerr-team/seerr) releases. A daily GitHub Actions workflow opens a pull request for each new stable Seerr release, and merging it publishes a matching Seearr release and Docker images.
 
 Based on [Seerr](https://github.com/seerr-team/seerr) v3.5.0.

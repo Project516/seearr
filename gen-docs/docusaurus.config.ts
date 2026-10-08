@@ -19,7 +19,7 @@ const config: Config = {
   },
 
   organizationName: 'Project516',
-  projectName: 'seerr',
+  projectName: 'seearr',
 
   onBrokenLinks: 'throw',
 
