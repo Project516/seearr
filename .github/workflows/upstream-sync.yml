@@ -32,12 +32,6 @@ jobs:
     name: Sync upstream stable release
     runs-on: ubuntu-24.04
     steps:
-      - name: Require AUTOUPDATE_TOKEN
-        env:
-          AUTOUPDATE_TOKEN: ${{ secrets.AUTOUPDATE_TOKEN }}
-        run: |
-          [ -n "$AUTOUPDATE_TOKEN" ] || { echo "::error::The AUTOUPDATE_TOKEN secret is not set."; exit 1; }
-
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
