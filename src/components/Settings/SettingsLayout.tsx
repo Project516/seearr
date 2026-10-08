@@ -8,7 +8,6 @@ import { useIntl } from 'react-intl';
 const messages = defineMessages('components.Settings', {
   menuGeneralSettings: 'General',
   menuUsers: 'Users',
-  menuPlexSettings: 'Plex',
   menuServices: 'Services',
   menuNetwork: 'Network',
   menuNotifications: 'Notifications',
@@ -34,11 +33,6 @@ const SettingsLayout = ({ children }: SettingsLayoutProps) => {
       text: intl.formatMessage(messages.menuUsers),
       route: '/settings/users',
       regex: /^\/settings\/users/,
-    },
-    {
-      text: intl.formatMessage(messages.menuPlexSettings),
-      route: '/settings/plex',
-      regex: /^\/settings\/plex/,
     },
     {
       text: intl.formatMessage(messages.menuServices),

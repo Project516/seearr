@@ -18,7 +18,6 @@ import useSWR from 'swr';
 const messages = defineMessages('components.UserProfile.UserSettings', {
   menuGeneralSettings: 'General',
   menuChangePass: 'Password',
-  menuLinkedAccounts: 'Linked Accounts',
   menuNotifications: 'Notifications',
   menuPermissions: 'Permissions',
   unauthorizedDescription:
@@ -63,11 +62,6 @@ const UserSettings = ({ children }: UserSettingsProps) => {
         (currentUser?.id !== 1 &&
           currentUser?.id !== user?.id &&
           hasPermission(Permission.ADMIN, user?.permissions ?? 0)),
-    },
-    {
-      text: intl.formatMessage(messages.menuLinkedAccounts),
-      route: '/settings/linked-accounts',
-      regex: /\/settings\/linked-accounts/,
     },
     {
       text: intl.formatMessage(messages.menuNotifications),
