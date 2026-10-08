@@ -8,7 +8,7 @@ const config: Config = {
   tagline: 'Lightweight media request manager for Radarr and Sonarr',
   favicon: 'img/favicon.ico',
 
-  url: 'https://docs.seerr.dev',
+  url: 'https://project516.dev',
   baseUrl: '/seearr/',
   trailingSlash: true,
 
@@ -18,9 +18,8 @@ const config: Config = {
     },
   },
 
-  organizationName: 'seerr-team',
-  projectName: 'seerr',
-  deploymentBranch: 'gh-pages',
+  organizationName: 'Project516',
+  projectName: 'seearr',
 
   onBrokenLinks: 'throw',
 
@@ -43,7 +42,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           routeBasePath: '/',
           path: '../docs',
-          editUrl: 'https://github.com/seerr-team/seerr/edit/develop/docs/',
+          editUrl: 'https://github.com/Project516/seearr/edit/master/docs/',
           docItemComponent: '@theme/ApiItem',
           async sidebarItemsGenerator({
             defaultSidebarItemsGenerator,
@@ -81,7 +80,7 @@ const config: Config = {
               groupPathsBy: 'tag',
             },
             downloadUrl:
-              'https://raw.githubusercontent.com/seerr-team/seerr/refs/heads/develop/seerr-api.yml',
+              'https://raw.githubusercontent.com/Project516/seearr/master/seerr-api.yml',
             hideSendButton: true,
           } satisfies OpenApiPlugin.Options,
         },
@@ -127,12 +126,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://discord.gg/seerr',
-          label: 'Discord',
-          position: 'right',
-        },
-        {
-          href: 'https://github.com/seerr-team/seerr',
+          href: 'https://github.com/Project516/seearr',
           label: 'GitHub',
           position: 'right',
         },
@@ -163,25 +157,12 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/seerr-team/seerr',
-            },
-          ],
-        },
-        {
-          title: 'Community',
-          items: [
-            {
-              label: 'Discord',
-              href: 'https://discord.gg/seerr',
-            },
-            {
-              label: 'Github Discussions',
-              href: 'https://github.com/seerr-team/seerr/discussions',
+              href: 'https://github.com/Project516/seearr',
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Seerr. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Project516. Based on Seerr. Built with Docusaurus.`,
     },
     prism: {
       theme: prismThemes.shadesOfPurple,
