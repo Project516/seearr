@@ -1,0 +1,10 @@
+# Paths the fork maintains itself. On an upstream sync conflict, these keep the
+# fork's version. One git pathspec per line.
+README.md
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+.github/ISSUE_TEMPLATE/*
+docs/README.md
+AGENTS.md
+CLAUDE.md

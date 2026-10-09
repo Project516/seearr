@@ -1,7 +1,6 @@
 name: 🐛 Bug Report
 description: Report a problem
-labels: ['awaiting triage']
-type: bug
+labels: ['bug']
 body:
   - type: markdown
     attributes:
@@ -20,7 +19,7 @@ body:
     id: version
     attributes:
       label: Version
-      description: What version of Seerr are you running? (You can find this in Settings → About → Version.)
+      description: What version of Seearr are you running? (You can find this in Settings → About → Version.)
     validations:
       required: true
   - type: textarea
@@ -104,7 +103,7 @@ body:
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/seerr-team/seerr/blob/develop/CODE_OF_CONDUCT.md)
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/Project516/seearr/blob/master/CODE_OF_CONDUCT.md)
       options:
-        - label: I agree to follow Seerr's Code of Conduct
+        - label: I agree to follow Seearr's Code of Conduct
           required: true

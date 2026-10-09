@@ -1,7 +1,6 @@
 name: ✨ Feature Request
 description: Suggest an idea
-labels: ['awaiting triage']
-type: feature
+labels: ['enhancement']
 body:
   - type: markdown
     attributes:
@@ -40,7 +39,7 @@ body:
     id: terms
     attributes:
       label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/seerr-team/seerr/blob/develop/CODE_OF_CONDUCT.md)
+      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/Project516/seearr/blob/master/CODE_OF_CONDUCT.md)
       options:
-        - label: I agree to follow Seerr's Code of Conduct
+        - label: I agree to follow Seearr's Code of Conduct
           required: true
