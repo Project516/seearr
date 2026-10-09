@@ -215,6 +215,16 @@ const Discover = () => {
           case DiscoverSliderType.RECENT_REQUESTS:
             sliderComponent = <RecentRequestsSlider />;
             break;
+          case DiscoverSliderType.RECOMMENDED_FOR_YOU:
+            sliderComponent = (
+              <MediaSlider
+                sliderKey="recommended-for-you"
+                title={intl.formatMessage(sliderTitles.recommendedForYou)}
+                url="/api/v1/discover/recommended"
+                hideWhenEmpty
+              />
+            );
+            break;
           case DiscoverSliderType.TRENDING:
             sliderComponent = (
               <MediaSlider

@@ -37,6 +37,7 @@ import issueCommentRoutes from './issueComment';
 import mediaRoutes from './media';
 import movieRoutes from './movie';
 import personRoutes from './person';
+import recommendedRoutes from './recommended';
 import requestRoutes from './request';
 import searchRoutes from './search';
 import serviceRoutes from './service';
@@ -155,6 +156,7 @@ router.get(
 );
 router.use('/settings', isAuthenticated(Permission.ADMIN), settingsRoutes);
 router.use('/search', isAuthenticated(), searchRoutes);
+router.use('/discover/recommended', isAuthenticated(), recommendedRoutes);
 router.use('/discover', isAuthenticated(), discoverRoutes);
 router.use('/request', isAuthenticated(), requestRoutes);
 router.use('/watchlist', isAuthenticated(), watchlistRoutes);

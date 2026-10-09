@@ -131,6 +131,8 @@ const DiscoverSliderEdit = ({
         return intl.formatMessage(sliderTitles.recentlyAdded);
       case DiscoverSliderType.RECENT_REQUESTS:
         return intl.formatMessage(sliderTitles.recentrequests);
+      case DiscoverSliderType.RECOMMENDED_FOR_YOU:
+        return intl.formatMessage(sliderTitles.recommendedForYou);
       case DiscoverSliderType.TRENDING:
         return intl.formatMessage(sliderTitles.trending);
       case DiscoverSliderType.POPULAR_MOVIES:
