@@ -18,32 +18,33 @@ Verification confirms that the image was built by the release workflow of this r
 
 ## Verify a release image
 
-Images are published to `ghcr.io/project516/seearr`. Verify the image digest, not the tag. The example below uses `v3.5.0`.
+Images are published to `ghcr.io/project516/seearr`. Verify the image digest, not the tag.
 
-Get the digest:
+Set `TAG` to the release you pulled, then get the digest:
 
 ```bash
-DIGEST=$(docker buildx imagetools inspect ghcr.io/project516/seearr:v3.5.0 --format '{{json .Manifest.Digest}}' | tr -d '"')
+TAG=vX.Y.Z
+DIGEST=$(docker buildx imagetools inspect "ghcr.io/project516/seearr:$TAG" --format '{{json .Manifest.Digest}}' | tr -d '"')
 ```
 
 Verify the signature:
 
 ```bash
 cosign verify ghcr.io/project516/seearr@"$DIGEST" \
-  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/v3.5.0" \
+  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/$TAG" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
-Set the tag in `--certificate-identity` to the tag you pulled. The identity must match the release that produced the image.
+The identity must match the release that produced the image.
 
-The `latest` tag is mutable. To verify it, find the version it points to on the [releases page](https://github.com/Project516/seearr/releases) and use that tag in the identity.
+The `latest` tag is mutable. To verify it, find the version it points to on the [releases page](https://github.com/Project516/seearr/releases) and set `TAG` to it.
 
 ## Verify the SBOM attestation
 
 ```bash
 cosign verify-attestation ghcr.io/project516/seearr@"$DIGEST" \
   --type cyclonedx \
-  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/v3.5.0" \
+  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/$TAG" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
 
@@ -52,6 +53,6 @@ To save the SBOM for inspection:
 ```bash
 cosign verify-attestation ghcr.io/project516/seearr@"$DIGEST" \
   --type cyclonedx \
-  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/v3.5.0" \
+  --certificate-identity "https://github.com/Project516/seearr/.github/workflows/release.yml@refs/tags/$TAG" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com" | jq -r '.payload | @base64d' > sbom.json
 ```

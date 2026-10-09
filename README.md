@@ -8,16 +8,33 @@
 
 **Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby. Discover new media via TMDb and add it to your *arr services.
 
-Designed for bare-metal self-hosting first. Docker images are also published to GHCR.
+Designed for bare-metal self-hosting first, and light enough for a Raspberry Pi. Docker images are also published to GHCR.
+
+## Recommendations for every user
+
+The Discover page opens with two rows built for whoever is signed in:
+
+- **Recommended For You**: titles TMDB recommends for your recent requests and for what Radarr and Sonarr have downloaded. A title recommended for several of them ranks higher.
+- **New For You**: the same list, limited to titles released in the last 180 days.
+
+There is nothing to set up. The rows use the TMDB connection Seearr already has, with no extra service, API key or AI model. See [how titles are picked](docs/using-seerr/recommendations.md).
+
+![Discover page with Recommended For You and New For You rows](docs/images/discover-recommendations.jpg)
+
+## Library
+
+The Library page lists every movie and series Radarr and Sonarr have downloaded, with filters for type and sort order. See [the Library docs](docs/using-seerr/library.md).
+
+![Library page showing downloaded movies and series](docs/images/library.jpg)
 
 ## What's different from Seerr
 
 - **Plex, Jellyfin & Emby removed.** All related code, auth, scanners, settings, and UI stripped out
 - **Radarr & Sonarr only.** Discover via TMDb, request to your *arr services
-- **No media server dependency.** No library scanning, no deep links, no watchlist sync
+- **No media server dependency.** The library comes from Radarr and Sonarr. No deep links, no Plex watchlist sync
 - **First-run wizard.** Create your admin account without a media server sign-in
 - **Portable.** Config and data live in the same directory as the app
-- **Auto-synced with upstream.** Daily CI merges changes from seerr-team/seerr
+- **Follows upstream releases.** A daily workflow opens a pull request for each new stable Seerr release
 
 ## Getting Started
 
@@ -45,7 +62,7 @@ The setup wizard will:
 1. Create your admin account
 2. Configure Radarr & Sonarr connections
 
-Prefer Docker? See [docs/getting-started/docker.mdx](https://github.com/Project516/seearr/blob/master/docs/getting-started/docker.mdx) or pull `ghcr.io/project516/seearr:seearr`.
+Prefer Docker? See [docs/getting-started/docker.mdx](https://github.com/Project516/seearr/blob/master/docs/getting-started/docker.mdx) or pull `ghcr.io/project516/seearr:latest`.
 
 ### Quick start (manual)
 
@@ -73,15 +90,20 @@ node dist/index.js
 
 ## Updating
 
-This fork auto-syncs with upstream via a daily CI workflow. When seerr-team/seerr publishes a new release, a PR is automatically created with the changes. Review and merge it.
-
-To update manually:
+Bare metal: pull the latest code and start again. `start.sh` reinstalls dependencies and rebuilds before it starts the server.
 
 ```bash
-git fetch upstream develop
-git merge upstream/develop
-# Resolve conflicts (if any) and commit
+git pull
+bash start.sh
 ```
+
+Docker: pull the new image and recreate the container.
+
+```bash
+docker pull ghcr.io/project516/seearr:latest
+```
+
+Each new stable Seerr release arrives as a pull request that a daily workflow opens. Merging it publishes a matching Seearr release.
 
 ## Requirements
 
@@ -95,16 +117,17 @@ git merge upstream/develop
 
 - TMDb-powered discovery (trending, popular, genres, upcoming)
 - Radarr & Sonarr integration (add movies/TV to download queue)
+- Personal "Recommended For You" and "New For You" rows on Discover
 - Library page listing everything Radarr and Sonarr have downloaded
-- Personal "Recommended For You" and "New For You" rows based on your requests and library
 - SQLite & PostgreSQL support
 - Customizable request system (per-season or full)
+- Override rules that set the quality profile, root folder or tags based on the requesting user, genre, language or keywords
 - Granular permission system
 - Notification agents (Discord, Telegram, Email, Pushover, etc.)
 - Blocklisting
 - Mobile-friendly UI
 - Full REST API (docs at `/api-docs`)
-- Scheduled jobs (library scans, download sync, availability sync)
+- Scheduled jobs (Radarr and Sonarr scans, download sync, availability sync)
 
 ## Upstream
 
