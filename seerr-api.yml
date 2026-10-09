@@ -5551,6 +5551,12 @@ paths:
             example: 1
             default: 1
         - in: query
+          name: recent
+          description: Only titles released in the last 180 days, up to today.
+          schema:
+            type: boolean
+            default: false
+        - in: query
           name: language
           schema:
             type: string

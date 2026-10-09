@@ -225,6 +225,17 @@ const Discover = () => {
               />
             );
             break;
+          case DiscoverSliderType.NEW_FOR_YOU:
+            sliderComponent = (
+              <MediaSlider
+                sliderKey="new-for-you"
+                title={intl.formatMessage(sliderTitles.newForYou)}
+                url="/api/v1/discover/recommended"
+                extraParams="recent=true"
+                hideWhenEmpty
+              />
+            );
+            break;
           case DiscoverSliderType.TRENDING:
             sliderComponent = (
               <MediaSlider

@@ -17,6 +17,7 @@ recommendedRoutes.get('/', async (req, res, next) => {
       {
         page: Number(req.query.page) || 1,
         language: (req.query.language as string) ?? req.locale,
+        recent: String(req.query.recent) === 'true',
       }
     );
     return res.status(200).json(results);

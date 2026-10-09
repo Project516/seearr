@@ -17,6 +17,8 @@ import { In } from 'typeorm';
 const SEEDS_PER_SOURCE = 10;
 export const RECOMMENDATIONS_PAGE_SIZE = 20;
 const CACHE_TTL_MS = 5 * 60 * 1000;
+// "New For You" keeps titles released within this window, up to today.
+const RECENT_DAYS = 180;
 
 const DOWNLOADED = [MediaStatus.AVAILABLE, MediaStatus.PARTIALLY_AVAILABLE];
 
@@ -75,7 +77,39 @@ const isUntouched = (media?: Media) =>
   (media.status === MediaStatus.UNKNOWN &&
     media.status4k === MediaStatus.UNKNOWN);
 
-// Ranks titles by how many seeds TMDB recommends them for, then by popularity.
+// Genres that recur across the candidates stand in for the user's taste. The
+// boost stays below 1, so it only reorders titles with the same score.
+const genreBoost = (candidates: Candidate[]) => {
+  const weight = new Map<number, number>();
+  for (const c of candidates) {
+    for (const genre of c.result.genre_ids ?? []) {
+      weight.set(genre, (weight.get(genre) ?? 0) + c.score);
+    }
+  }
+  const max = Math.max(1, ...weight.values());
+  return (c: Candidate) => {
+    const genres = c.result.genre_ids ?? [];
+    if (!genres.length) return 0;
+    const total = genres.reduce((sum, g) => sum + (weight.get(g) ?? 0), 0);
+    return (0.5 * total) / (genres.length * max);
+  };
+};
+
+const releaseDate = (r: Recommendation) =>
+  r.mediaType === 'movie' ? r.releaseDate : r.firstAirDate;
+
+// TMDB dates are YYYY-MM-DD, so string comparison orders them by day.
+const isRecent = (r: Recommendation, now: number) => {
+  const released = releaseDate(r) ?? '';
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
+  return (
+    released <= day(now) &&
+    released >= day(now - RECENT_DAYS * 24 * 60 * 60 * 1000)
+  );
+};
+
+// Ranks titles by how many seeds TMDB recommends them for, then by shared
+// genres, then by popularity.
 const rankRecommendations = async (
   user: User,
   tmdb: TheMovieDb,
@@ -131,11 +165,14 @@ const rankRecommendations = async (
   const mediaFor = (c: Candidate) =>
     media.find((m) => m.tmdbId === c.result.id && m.mediaType === c.mediaType);
 
-  return [...candidates.values()]
-    .filter((c) => isUntouched(mediaFor(c)))
+  const kept = [...candidates.values()].filter((c) => isUntouched(mediaFor(c)));
+  const boost = genreBoost(kept);
+  const rank = (c: Candidate) => c.score + boost(c);
+
+  return kept
     .sort(
       (a, b) =>
-        b.score - a.score ||
+        rank(b) - rank(a) ||
         (b.result.popularity ?? 0) - (a.result.popularity ?? 0)
     )
     .map((c) =>
@@ -148,7 +185,11 @@ const rankRecommendations = async (
 export const getRecommendations = async (
   user: User,
   tmdb: TheMovieDb,
-  { page = 1, language }: { page?: number; language?: string } = {}
+  {
+    page = 1,
+    language,
+    recent = false,
+  }: { page?: number; language?: string; recent?: boolean } = {}
 ): Promise<{
   page: number;
   totalPages: number;
@@ -169,7 +210,9 @@ export const getRecommendations = async (
     cache.set(cacheKey, entry);
     entry.ranked.catch(() => cache.delete(cacheKey));
   }
-  const ranked = await entry.ranked;
+  const ranked = recent
+    ? (await entry.ranked).filter((r) => isRecent(r, now))
+    : await entry.ranked;
 
   const currentPage = Math.max(1, Math.floor(page));
   const start = (currentPage - 1) * RECOMMENDATIONS_PAGE_SIZE;
