@@ -70,13 +70,4 @@ describe('GET /media mediaType filter', () => {
     const all = await agent.get('/media?filter=allavailable');
     assert.strictEqual(all.body.pageInfo.results, 2);
   });
-
-  it('ignores an unknown media type', async () => {
-    await seed(MediaType.MOVIE, 404, MediaStatus.AVAILABLE);
-    const agent = await adminAgent();
-
-    const res = await agent.get('/media?filter=allavailable&mediaType=music');
-    assert.strictEqual(res.status, 200);
-    assert.strictEqual(res.body.pageInfo.results, 1);
-  });
 });

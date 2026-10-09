@@ -71,7 +71,7 @@ const Library = () => {
     !isLoadingMore && !isValidating && !isReachingEnd
   );
 
-  if (error) {
+  if (error && !data?.length) {
     return <ErrorPage statusCode={500} />;
   }
 

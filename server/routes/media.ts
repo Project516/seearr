@@ -58,11 +58,13 @@ mediaRoutes.get('/', async (req, res, next) => {
     case 'modified':
       sortFilter = {
         updatedAt: 'DESC',
+        id: 'DESC',
       };
       break;
     case 'mediaAdded':
       sortFilter = {
         mediaAddedAt: 'DESC',
+        id: 'DESC',
       };
   }
 
