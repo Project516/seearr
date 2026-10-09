@@ -97,9 +97,17 @@ test('recommendations are empty until the user has requests or a library', async
   expect(res.ok()).toBeTruthy();
   expect((await res.json()).results).toEqual([]);
 
+  const recent = await page.request.get(
+    '/api/v1/discover/recommended?recent=true'
+  );
+  expect(recent.ok()).toBeTruthy();
+  expect((await recent.json()).results).toEqual([]);
+
   const sliders = await page.request.get('/api/v1/settings/discover');
   expect(sliders.ok()).toBeTruthy();
   expect(
-    (await sliders.json()).some((s: { type: number }) => s.type === 1001)
-  ).toBeTruthy();
+    (await sliders.json()).filter((s: { type: number }) =>
+      [1001, 1002].includes(s.type)
+    )
+  ).toHaveLength(2);
 });

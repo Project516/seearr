@@ -115,6 +115,7 @@
   "components.Discover.discover": "Discover",
   "components.Discover.moviegenres": "Movie Genres",
   "components.Discover.networks": "Networks",
+  "components.Discover.newForYou": "New For You",
   "components.Discover.popularmovies": "Popular Movies",
   "components.Discover.populartv": "Popular Series",
   "components.Discover.recentlyAdded": "Recently Added",

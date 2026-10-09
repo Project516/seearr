@@ -23,6 +23,7 @@ export enum DiscoverSliderType {
   TMDB_TV_STREAMING_SERVICES,
   // Fork-owned; kept far from upstream's sequential values.
   RECOMMENDED_FOR_YOU = 1001,
+  NEW_FOR_YOU = 1002,
 }
 
 export const defaultSliders: Partial<DiscoverSlider>[] = [
@@ -34,6 +35,12 @@ export const defaultSliders: Partial<DiscoverSlider>[] = [
   },
   {
     type: DiscoverSliderType.RECOMMENDED_FOR_YOU,
+    enabled: true,
+    isBuiltIn: true,
+    order: 1,
+  },
+  {
+    type: DiscoverSliderType.NEW_FOR_YOU,
     enabled: true,
     isBuiltIn: true,
     order: 1,

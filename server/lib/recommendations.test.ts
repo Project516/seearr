@@ -42,13 +42,45 @@ Object.defineProperty(TheMovieDb.prototype, 'getMovie', {
   configurable: true,
 });
 
-const movie = (id: number, popularity = 1) => ({
+const movie = (
+  id: number,
+  popularity = 1,
+  genre_ids: number[] = [],
+  release_date = '2020-01-01'
+) => ({
   id,
   media_type: 'movie',
   title: `Movie ${id}`,
   popularity,
-  genre_ids: [],
+  genre_ids,
+  release_date,
 });
+
+const daysAgo = (days: number) =>
+  new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+
+// A TMDB stub that recommends the given titles for every seed.
+const tmdbReturning = (results: ReturnType<typeof movie>[]) =>
+  ({
+    getMovieRecommendations: async () => ({
+      page: 1,
+      total_pages: 1,
+      total_results: results.length,
+      results,
+    }),
+  }) as unknown as TheMovieDb;
+
+async function seedLibraryMovie(tmdbId: number) {
+  await getRepository(Media).save(
+    new Media({
+      tmdbId,
+      mediaType: MediaType.MOVIE,
+      status: MediaStatus.AVAILABLE,
+      status4k: MediaStatus.UNKNOWN,
+    })
+  );
+  return getRepository(User).findOneOrFail({ where: { id: 1 } });
+}
 
 // TMDB recommendations per seed tmdbId.
 let tmdbCalls = 0;
@@ -141,6 +173,44 @@ describe('getRecommendations', () => {
 
     assert.strictEqual(tmdbCalls, callsAfterFirst);
     assert.deepStrictEqual(page2.results, []);
+  });
+
+  it('breaks score ties by genres that recur across candidates', async () => {
+    const user = await seedLibraryMovie(40);
+
+    const res = await getRecommendations(
+      user,
+      tmdbReturning([
+        movie(1001, 100, [9]),
+        movie(1002, 1, [5]),
+        movie(1003, 1, [5]),
+      ])
+    );
+
+    assert.deepStrictEqual(
+      res.results.map((r) => r.id),
+      [1002, 1003, 1001]
+    );
+  });
+
+  it('limits New For You to titles released recently', async () => {
+    const user = await seedLibraryMovie(40);
+
+    const res = await getRecommendations(
+      user,
+      tmdbReturning([
+        movie(2001, 1, [], daysAgo(10)),
+        movie(2002, 1, [], daysAgo(400)),
+        movie(2003, 1, [], daysAgo(-30)),
+        movie(2004, 1, [], ''),
+      ]),
+      { recent: true }
+    );
+
+    assert.deepStrictEqual(
+      res.results.map((r) => r.id),
+      [2001]
+    );
   });
 
   it('returns an empty page for a user with nothing to go on', async () => {
