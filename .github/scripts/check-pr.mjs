@@ -5,7 +5,15 @@ import { readFileSync } from 'node:fs';
 const body = readFileSync(process.argv[2], 'utf8');
 const files = readFileSync(process.argv[3], 'utf8').split('\n').filter(Boolean);
 
-const stripComments = (s) => s.replace(/<!--[\s\S]*?-->/g, '');
+// Repeat until stable so nested markers cannot leave a partial comment behind.
+const stripComments = (s) => {
+  let previous;
+  do {
+    previous = s;
+    s = s.replace(/<!--[\s\S]*?-->/g, '');
+  } while (s !== previous);
+  return s;
+};
 const section = (name) => {
   const match = stripComments(body).match(
     new RegExp(`##\\s*${name}[^\\n]*\\n([\\s\\S]*?)(?=\\n##\\s|$)`, 'i')
