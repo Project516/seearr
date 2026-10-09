@@ -59,8 +59,8 @@ representative at an online or offline event.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the community leaders responsible for enforcement at
-[ryan@sct.dev](mailto:ryan@sct.dev).
+reported to the maintainer, [@Project516](https://github.com/Project516),
+through a private [GitHub security advisory](https://github.com/Project516/seearr/security/advisories/new).
 All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the

@@ -3,8 +3,9 @@
 name: Upstream Sync
 
 # Opens a PR that merges the latest stable Seerr release into master. Files the
-# fork deleted and a lockfile-only conflict are resolved automatically. A clean
-# merge gets auto-merge armed; any other conflict is committed with its markers
+# fork deleted, files listed in .github/fork-owned, and a lockfile-only
+# conflict are resolved automatically. A clean merge gets auto-merge armed;
+# any other conflict is committed with its markers
 # and left open for manual resolution. The merge bumps package.json, which
 # tag-release.yml turns into a release.
 #
@@ -89,6 +90,10 @@ jobs:
           if ! git merge --no-edit -m "chore: merge upstream seerr ${tag}" "$tagsha"; then
             # Files the fork deleted stay deleted.
             git status --porcelain | awk '$1 == "DU" {print $2}' | xargs -r git rm -q --
+            # Files the fork maintains itself keep the fork's version.
+            grep -v '^#' .github/fork-owned | sed '/^$/d' \
+              | xargs -r git diff --name-only --diff-filter=U -- \
+              | xargs -r sh -c 'git checkout --ours -- "$@" && git add -- "$@"' _
             # A lockfile that is the last conflict is regenerated from the
             # merged package.json.
             if [ "$(git diff --name-only --diff-filter=U)" = "pnpm-lock.yaml" ]; then
