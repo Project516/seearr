@@ -32,6 +32,8 @@ The Library page lists every movie and series Radarr and Sonarr have downloaded,
 - **Plex, Jellyfin & Emby removed.** Their sign-in, scanners, settings and UI are gone
 - **Radarr & Sonarr only.** Discover via TMDb, request to your *arr services
 - **No media server dependency.** The library comes from Radarr and Sonarr. No deep links, no Plex watchlist sync
+- **Personal recommendations.** [Recommended For You and New For You](#recommendations-for-every-user) rows on Discover, built from each user's requests and the library
+- **Library page.** [Everything Radarr and Sonarr have downloaded](#library) in one list
 - **First-run wizard.** Create your admin account without a media server sign-in
 - **Portable.** Config and data live in the same directory as the app
 - **Follows upstream releases.** A daily workflow opens a pull request for each new stable Seerr release
