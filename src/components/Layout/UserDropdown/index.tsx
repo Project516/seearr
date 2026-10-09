@@ -1,8 +1,4 @@
 import CachedImage from '@app/components/Common/CachedImage';
-import {
-  SOURCE_URL,
-  sourceLinkMessages,
-} from '@app/components/Layout/SourceLink';
 import MiniQuotaDisplay from '@app/components/Layout/UserDropdown/MiniQuotaDisplay';
 import { Permission, useUser } from '@app/hooks/useUser';
 import defineMessages from '@app/utils/defineMessages';
@@ -17,7 +13,6 @@ import {
 import {
   ArrowRightOnRectangleIcon,
   ClockIcon,
-  CodeBracketIcon,
 } from '@heroicons/react/24/outline';
 import { CogIcon, UserIcon } from '@heroicons/react/24/solid';
 import axios from 'axios';
@@ -202,25 +197,6 @@ const UserDropdown = () => {
                     <CogIcon className="mr-2 inline h-5 w-5" />
                     <span>{intl.formatMessage(messages.settings)}</span>
                   </ForwardedLink>
-                )}
-              </MenuItem>
-              <MenuItem>
-                {({ active }) => (
-                  <a
-                    href={SOURCE_URL}
-                    target="_blank"
-                    rel="noreferrer"
-                    className={`flex items-center rounded px-4 py-2 text-sm font-medium text-gray-200 transition duration-150 ease-in-out ${
-                      active
-                        ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white'
-                        : ''
-                    }`}
-                  >
-                    <CodeBracketIcon className="mr-2 inline h-5 w-5" />
-                    <span>
-                      {intl.formatMessage(sourceLinkMessages.sourcecode)}
-                    </span>
-                  </a>
                 )}
               </MenuItem>
               <MenuItem>

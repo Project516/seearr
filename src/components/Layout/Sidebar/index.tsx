@@ -248,7 +248,10 @@ const Sidebar = ({
                         <VersionStatus onClick={() => setClosed()} />
                       </div>
                     )}
-                    <SourceLink className="mx-6 mt-3 self-start" />
+                    <SourceLink
+                      className="mx-6 mt-3 self-start"
+                      onClick={() => setClosed()}
+                    />
                   </div>
                 </div>
                 <div className="w-14 flex-shrink-0">

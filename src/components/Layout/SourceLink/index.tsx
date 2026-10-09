@@ -13,14 +13,21 @@ export const sourceLinkMessages = defineMessages(
   }
 );
 
-const SourceLink = ({ className = '' }: { className?: string }) => {
+const SourceLink = ({
+  className = '',
+  onClick,
+}: {
+  className?: string;
+  onClick?: () => void;
+}) => {
   const intl = useIntl();
 
   return (
     <a
       href={SOURCE_URL}
+      onClick={onClick}
       target="_blank"
-      rel="noreferrer"
+      rel="noopener noreferrer"
       className={`flex items-center gap-2 rounded-md text-xs font-medium text-gray-400 transition duration-150 hover:text-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${className}`}
     >
       <CodeBracketIcon className="h-4 w-4" aria-hidden="true" />

@@ -3,6 +3,10 @@ import Badge from '@app/components/Common/Badge';
 import List from '@app/components/Common/List';
 import LoadingSpinner from '@app/components/Common/LoadingSpinner';
 import PageTitle from '@app/components/Common/PageTitle';
+import {
+  SOURCE_URL,
+  sourceLinkMessages,
+} from '@app/components/Layout/SourceLink';
 import Releases from '@app/components/Settings/SettingsAbout/Releases';
 import useSettings from '@app/hooks/useSettings';
 import globalMessages from '@app/i18n/globalMessages';
@@ -136,6 +140,16 @@ const SettingsAbout = () => {
                 </Badge>
               </a>
             )}
+          </List.Item>
+          <List.Item title={intl.formatMessage(sourceLinkMessages.sourcecode)}>
+            <a
+              href={SOURCE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-indigo-500 transition duration-300 hover:underline"
+            >
+              {SOURCE_URL}
+            </a>
           </List.Item>
           <List.Item title={intl.formatMessage(messages.totalmedia)}>
             {intl.formatNumber(data.totalMediaItems)}

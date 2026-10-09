@@ -141,4 +141,4 @@ Seearr as a whole is licensed under the [GNU Affero General Public License v3.0 
 
 The code that comes from Seerr stays under the [MIT License](LICENSE-MIT), copyright (c) 2020 sct, and you can still use those parts under MIT. Keep `LICENSE-MIT` with any copy of Seearr.
 
-If you run a modified Seearr for other people over a network, the AGPL requires you to offer them the source of your version. The "Source code" links in the sidebar and the account menu point at this repository. Change `SOURCE_URL` in `src/components/Layout/SourceLink/index.tsx` to point them at yours.
+If you run a modified Seearr for other people over a network, the AGPL requires you to offer them the source of your version. The "Source code" links in the sidebar and on Settings > About point at this repository. Change `SOURCE_URL` in `src/components/Layout/SourceLink/index.tsx` to point them at yours.
