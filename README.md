@@ -8,28 +8,28 @@
 
 **Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby. Discover new media via TMDb and add it to your *arr services.
 
-Designed for bare-metal self-hosting first, and light enough for a Raspberry Pi. Docker images are also published to GHCR.
+Designed for bare-metal self-hosting first. Multi-arch Docker images (amd64 and arm64) are also published to GHCR.
 
 ## Recommendations for every user
 
-The Discover page opens with two rows built for whoever is signed in:
+The Discover page has two rows built for whoever is signed in:
 
 - **Recommended For You**: titles TMDB recommends for your recent requests and for what Radarr and Sonarr have downloaded. A title recommended for several of them ranks higher.
 - **New For You**: the same list, limited to titles released in the last 180 days.
 
-There is nothing to set up. The rows use the TMDB connection Seearr already has, with no extra service, API key or AI model. See [how titles are picked](docs/using-seerr/recommendations.md).
+There is nothing to set up. The rows appear once the user has made a request or Radarr or Sonarr has downloaded something. They use the TMDB connection Seearr already has, with no extra service, API key or AI model. See [how titles are picked](docs/using-seerr/recommendations.md).
 
 ![Discover page with Recommended For You and New For You rows](docs/images/discover-recommendations.jpg)
 
 ## Library
 
-The Library page lists every movie and series Radarr and Sonarr have downloaded, with filters for type and sort order. See [the Library docs](docs/using-seerr/library.md).
+The Library page lists every movie and series Radarr and Sonarr have downloaded, and you can filter it by media type and sort it by date added or last updated. See [the Library docs](docs/using-seerr/library.md).
 
 ![Library page showing downloaded movies and series](docs/images/library.jpg)
 
 ## What's different from Seerr
 
-- **Plex, Jellyfin & Emby removed.** All related code, auth, scanners, settings, and UI stripped out
+- **Plex, Jellyfin & Emby removed.** Their sign-in, scanners, settings and UI are gone
 - **Radarr & Sonarr only.** Discover via TMDb, request to your *arr services
 - **No media server dependency.** The library comes from Radarr and Sonarr. No deep links, no Plex watchlist sync
 - **First-run wizard.** Create your admin account without a media server sign-in
@@ -90,7 +90,7 @@ node dist/index.js
 
 ## Updating
 
-Bare metal: pull the latest code and start again. `start.sh` reinstalls dependencies and rebuilds before it starts the server.
+Bare metal: pull the latest code and start again. `start.sh` installs dependencies, and rebuilds when the source changed, before it starts the server.
 
 ```bash
 git pull
