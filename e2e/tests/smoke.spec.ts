@@ -83,3 +83,23 @@ test('library page shows its empty state and keeps filters in the URL', async ({
   await expect(page).toHaveURL(/sort=modified/);
   await expect(page.getByText('Nothing here yet')).toBeVisible();
 });
+
+test('recommendations are empty until the user has requests or a library', async ({
+  page,
+}) => {
+  await page.goto('/login');
+  await page.locator('input[name="email"]').fill(admin.email);
+  await page.locator('input[name="password"]').fill(admin.password);
+  await page.getByTestId('local-signin-button').click();
+  await expect(page).not.toHaveURL(/\/login/);
+
+  const res = await page.request.get('/api/v1/discover/recommended');
+  expect(res.ok()).toBeTruthy();
+  expect((await res.json()).results).toEqual([]);
+
+  const sliders = await page.request.get('/api/v1/settings/discover');
+  expect(sliders.ok()).toBeTruthy();
+  expect(
+    (await sliders.json()).some((s: { type: number }) => s.type === 1001)
+  ).toBeTruthy();
+});

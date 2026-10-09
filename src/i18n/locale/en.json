@@ -119,6 +119,7 @@
   "components.Discover.populartv": "Popular Series",
   "components.Discover.recentlyAdded": "Recently Added",
   "components.Discover.recentrequests": "Recent Requests",
+  "components.Discover.recommendedForYou": "Recommended For You",
   "components.Discover.resetfailed": "Something went wrong resetting the discover customization settings.",
   "components.Discover.resetsuccess": "Sucessfully reset discover customization settings.",
   "components.Discover.resettodefault": "Reset to Default",
