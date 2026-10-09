@@ -182,7 +182,7 @@ describe('getRecommendations', () => {
       user,
       tmdbReturning([
         movie(1001, 100, [9]),
-        movie(1002, 1, [5]),
+        movie(1002, 2, [5]),
         movie(1003, 1, [5]),
       ])
     );
