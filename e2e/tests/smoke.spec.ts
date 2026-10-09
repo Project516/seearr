@@ -63,3 +63,23 @@ test('admin pages load after sign-in', async ({ page }) => {
     page.off('pageerror', onError);
   }
 });
+
+test('library page shows its empty state and keeps filters in the URL', async ({
+  page,
+}) => {
+  await page.goto('/login');
+  await page.locator('input[name="email"]').fill(admin.email);
+  await page.locator('input[name="password"]').fill(admin.password);
+  await page.getByTestId('local-signin-button').click();
+  await expect(page).not.toHaveURL(/\/login/);
+
+  await page.locator('a[href="/library"]:visible').first().click();
+  await expect(page).toHaveURL(/\/library$/);
+  await expect(page.getByText('Nothing here yet')).toBeVisible();
+
+  await page.getByLabel('Media type').selectOption('movie');
+  await expect(page).toHaveURL(/type=movie/);
+  await page.getByLabel('Sort by').selectOption('modified');
+  await expect(page).toHaveURL(/sort=modified/);
+  await expect(page.getByText('Nothing here yet')).toBeVisible();
+});

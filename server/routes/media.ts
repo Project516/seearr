@@ -58,18 +58,27 @@ mediaRoutes.get('/', async (req, res, next) => {
     case 'modified':
       sortFilter = {
         updatedAt: 'DESC',
+        id: 'DESC',
       };
       break;
     case 'mediaAdded':
       sortFilter = {
         mediaAddedAt: 'DESC',
+        id: 'DESC',
       };
   }
 
+  const mediaType =
+    req.query.mediaType === MediaType.MOVIE ||
+    req.query.mediaType === MediaType.TV
+      ? req.query.mediaType
+      : undefined;
+
   let whereClause: FindOneOptions<Media>['where'];
-  if (statusFilter || req.query.sort === 'mediaAdded') {
+  if (statusFilter || req.query.sort === 'mediaAdded' || mediaType) {
     whereClause = {};
     if (statusFilter) whereClause.status = statusFilter;
+    if (mediaType) whereClause.mediaType = mediaType;
     if (req.query.sort === 'mediaAdded')
       whereClause.mediaAddedAt = Not(IsNull());
   }
