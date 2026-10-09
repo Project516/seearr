@@ -26,7 +26,7 @@ const messages = defineMessages('components.Settings.SettingsAbout', {
   totalmedia: 'Total Media',
   totalrequests: 'Total Requests',
   gettingsupport: 'Getting Support',
-  githubdiscussions: 'GitHub Discussions',
+  githubissues: 'GitHub Issues',
   timezone: 'Time Zone',
   appDataPath: 'Data Directory',
   supportseerr: 'Support Seerr',
@@ -171,32 +171,22 @@ const SettingsAbout = () => {
         <List title={intl.formatMessage(messages.gettingsupport)}>
           <List.Item title={intl.formatMessage(messages.documentation)}>
             <a
-              href="https://docs.seerr.dev"
+              href="https://seearr.project516.dev"
               target="_blank"
               rel="noreferrer"
               className="text-indigo-500 transition duration-300 hover:underline"
             >
-              https://docs.seerr.dev
+              https://seearr.project516.dev
             </a>
           </List.Item>
-          <List.Item title={intl.formatMessage(messages.githubdiscussions)}>
+          <List.Item title={intl.formatMessage(messages.githubissues)}>
             <a
-              href="https://github.com/seerr-team/seerr/discussions"
+              href="https://github.com/Project516/seearr/issues"
               target="_blank"
               rel="noreferrer"
               className="text-indigo-500 transition duration-300 hover:underline"
             >
-              https://github.com/seerr-team/seerr/discussions
-            </a>
-          </List.Item>
-          <List.Item title="Discord">
-            <a
-              href="https://discord.gg/seerr"
-              target="_blank"
-              rel="noreferrer"
-              className="text-indigo-500 transition duration-300 hover:underline"
-            >
-              https://discord.gg/seerr
+              https://github.com/Project516/seearr/issues
             </a>
           </List.Item>
         </List>

@@ -894,7 +894,7 @@
   "components.Settings.SettingsAbout.contribute": "Make a Contribution",
   "components.Settings.SettingsAbout.documentation": "Documentation",
   "components.Settings.SettingsAbout.gettingsupport": "Getting Support",
-  "components.Settings.SettingsAbout.githubdiscussions": "GitHub Discussions",
+  "components.Settings.SettingsAbout.githubissues": "GitHub Issues",
   "components.Settings.SettingsAbout.outofdate": "Out of Date",
   "components.Settings.SettingsAbout.runningDevelop": "You are running the <code>develop</code> branch of Seerr, which is only recommended for those contributing to development or assisting with bleeding-edge testing.",
   "components.Settings.SettingsAbout.supportseerr": "Support Seerr",
