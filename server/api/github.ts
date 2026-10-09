@@ -83,7 +83,7 @@ class GithubAPI extends ExternalAPI {
   } = {}): Promise<GitHubRelease[]> {
     try {
       const data = await this.get<GitHubRelease[]>(
-        '/repos/seerr-team/seerr/releases',
+        '/repos/Project516/seearr/releases',
         {
           params: {
             per_page: take,
@@ -103,14 +103,14 @@ class GithubAPI extends ExternalAPI {
 
   public async getSeerrCommits({
     take = 20,
-    branch = 'develop',
+    branch = 'master',
   }: {
     take?: number;
     branch?: string;
   } = {}): Promise<GithubCommit[]> {
     try {
       const data = await this.get<GithubCommit[]>(
-        '/repos/seerr-team/seerr/commits',
+        '/repos/Project516/seearr/commits',
         {
           params: {
             per_page: take,
