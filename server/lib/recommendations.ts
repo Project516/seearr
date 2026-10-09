@@ -159,6 +159,9 @@ export const getRecommendations = async (
   const now = Date.now();
   let entry = cache.get(cacheKey);
   if (!entry || entry.expires <= now) {
+    for (const [k, e] of cache) {
+      if (e.expires <= now) cache.delete(k);
+    }
     entry = {
       expires: now + CACHE_TTL_MS,
       ranked: rankRecommendations(user, tmdb, language),
