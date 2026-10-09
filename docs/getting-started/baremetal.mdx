@@ -55,7 +55,7 @@ The setup script handles everything automatically:
 
 The start script:
 
-1. Runs `setup.sh` if dependencies haven't been installed yet
+1. Runs `setup.sh`, which installs dependencies and rebuilds when the source changed
 2. Launches the app with `node dist/index.js`
 3. Opens `http://localhost:5055` in your browser once the server responds
 
@@ -97,6 +97,15 @@ sudo systemctl start seerr
 ```
 
 ### Updating
+
+Stop Seearr, then pull and start it again. `start.sh` reinstalls dependencies and rebuilds when the source changed:
+
+```bash
+git pull
+./start.sh
+```
+
+With the systemd service, rebuild and restart instead:
 
 ```bash
 git pull

@@ -2,7 +2,7 @@
 
 Seerr docs is built using [Docusaurus](https://docusaurus.io/), a modern static website generator.
 
-Seerr docs will be available at [docs.seerr.dev](https://docs.seerr.dev).
+Seearr docs are at [seearr.project516.dev](https://seearr.project516.dev).
 
 ### Installation
 

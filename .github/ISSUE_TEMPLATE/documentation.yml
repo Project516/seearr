@@ -14,8 +14,8 @@ body:
     id: doc-location
     attributes:
       label: Page / Location
-      description: Link to the docs page or the file/path (e.g. https://project516.dev/seearr/... or README.md)
-      placeholder: "https://project516.dev/seearr/..."
+      description: Link to the docs page or the file/path (e.g. https://seearr.project516.dev/... or README.md)
+      placeholder: "https://seearr.project516.dev/..."
     validations:
       required: true
   - type: dropdown

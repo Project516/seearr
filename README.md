@@ -17,13 +17,13 @@ The Discover page has two rows built for whoever is signed in:
 - **Recommended For You**: titles TMDB recommends for your recent requests and for what Radarr and Sonarr have downloaded. A title recommended for several of them ranks higher.
 - **New For You**: the same list, limited to titles released in the last 180 days.
 
-There is nothing to set up. The rows appear once the user has made a request or Radarr or Sonarr has downloaded something. They use the TMDB connection Seearr already has, with no extra service, API key or AI model. See [how titles are picked](docs/using-seerr/recommendations.md).
+There is nothing to set up. The rows appear once the user has made a request or Radarr or Sonarr has downloaded something. They use the TMDB connection Seearr already has, with no extra service, API key or AI model. See [how titles are picked](https://seearr.project516.dev/using-seerr/recommendations).
 
 ![Discover page with Recommended For You and New For You rows](docs/images/discover-recommendations.jpg)
 
 ## Library
 
-The Library page lists every movie and series Radarr and Sonarr have downloaded, and you can filter it by media type and sort it by date added or last updated. See [the Library docs](docs/using-seerr/library.md).
+The Library page lists every movie and series Radarr and Sonarr have downloaded, and you can filter it by media type and sort it by date added or last updated. See [the Library docs](https://seearr.project516.dev/using-seerr/library).
 
 ![Library page showing downloaded movies and series](docs/images/library.jpg)
 
@@ -40,80 +40,19 @@ The Library page lists every movie and series Radarr and Sonarr have downloaded,
 
 ## Getting Started
 
+You need Node.js 22+, pnpm 10+, and Radarr or Sonarr. On bare metal:
+
 ```bash
 git clone https://github.com/Project516/seearr.git
 cd seearr
-bash start.sh
+./start.sh
 ```
 
-The `start.sh` script will:
-1. Check prerequisites (Node.js 22+, pnpm)
-2. Install dependencies and build
-3. Create a default `config/settings.json`
-4. Start the server on port 5055
-5. Open http://localhost:5055 in your browser once it responds (`NO_BROWSER=1` to skip)
+`start.sh` installs dependencies, builds, and serves Seearr at http://localhost:5055, where the setup wizard creates your admin account and connects Radarr and Sonarr. To update, run `git pull` and `./start.sh` again.
 
-Or run setup and start separately:
+Prefer Docker? Images for amd64 and arm64 are at `ghcr.io/project516/seearr:latest`; see the [Docker guide](https://seearr.project516.dev/getting-started/docker).
 
-```bash
-bash setup.sh    # install + build only
-bash start.sh    # run setup + start
-```
-
-The setup wizard will:
-1. Create your admin account
-2. Configure Radarr & Sonarr connections
-
-Prefer Docker? See [docs/getting-started/docker.mdx](https://github.com/Project516/seearr/blob/master/docs/getting-started/docker.mdx) or pull `ghcr.io/project516/seearr:latest`.
-
-### Quick start (manual)
-
-```bash
-CONFIG_DIRECTORY="$PWD/config" \
-NODE_ENV=production \
-PORT=5055 \
-node dist/index.js
-```
-
-### Environment variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PORT` | `5055` | HTTP port |
-| `CONFIG_DIRECTORY` | `./config` | Path to config folder |
-| `DB_TYPE` | `sqlite` | `sqlite` or `postgres` |
-| `DB_HOST` | — | PostgreSQL host |
-| `DB_PORT` | `5432` | PostgreSQL port |
-| `DB_USER` | — | PostgreSQL user |
-| `DB_PASS` | — | PostgreSQL password |
-| `DB_NAME` | `seerr` | PostgreSQL database name |
-| `HOST` | — | Listen address (e.g. `0.0.0.0`) |
-| `API_KEY` | — | Override auto-generated API key |
-
-## Updating
-
-Bare metal: pull the latest code and start again. `start.sh` installs dependencies, and rebuilds when the source changed, before it starts the server.
-
-```bash
-git pull
-bash start.sh
-```
-
-Docker: pull the new image and recreate the container.
-
-```bash
-docker pull ghcr.io/project516/seearr:latest
-```
-
-Each new stable Seerr release arrives as a pull request that a daily workflow opens. Merging it publishes a matching Seearr release.
-
-## Requirements
-
-- **Node.js** 22+
-- **pnpm** 10+
-- **SQLite** (default) or **PostgreSQL** (optional)
-- **Radarr** (for movies)
-- **Sonarr** (for TV series)
+The [documentation](https://seearr.project516.dev/getting-started) covers both install paths, running as a service, PostgreSQL, environment variables and reverse proxies.
 
 ## Features
 
@@ -130,6 +69,12 @@ Each new stable Seerr release arrives as a pull request that a daily workflow op
 - Mobile-friendly UI
 - Full REST API (docs at `/api-docs`)
 - Scheduled jobs (Radarr and Sonarr scans, download sync, availability sync)
+
+## Support
+
+- Read the [Seearr documentation](https://seearr.project516.dev) first. Your question might already be answered.
+- Report bugs and request features in [GitHub Issues](https://github.com/Project516/seearr/issues).
+- The API docs are served by your own install at http://localhost:5055/api-docs.
 
 ## Upstream
 

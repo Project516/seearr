@@ -8,8 +8,8 @@ const config: Config = {
   tagline: 'Lightweight media request manager for Radarr and Sonarr',
   favicon: 'img/favicon.ico',
 
-  url: 'https://project516.dev',
-  baseUrl: '/seearr/',
+  url: 'https://seearr.project516.dev',
+  baseUrl: '/',
   trailingSlash: true,
 
   future: {
