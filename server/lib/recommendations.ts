@@ -8,6 +8,7 @@ import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { MediaRequest } from '@server/entity/MediaRequest';
 import type { User } from '@server/entity/User';
+import logger from '@server/logger';
 import type { MovieResult, TvResult } from '@server/models/Search';
 import { mapMovieResult, mapTvResult } from '@server/models/Search';
 import { In } from 'typeorm';
@@ -15,6 +16,9 @@ import { In } from 'typeorm';
 // Seeds per source; each seed costs one (cached) TMDB request.
 const SEEDS_PER_SOURCE = 10;
 export const RECOMMENDATIONS_PAGE_SIZE = 20;
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+const DOWNLOADED = [MediaStatus.AVAILABLE, MediaStatus.PARTIALLY_AVAILABLE];
 
 interface Seed {
   tmdbId: number;
@@ -27,9 +31,18 @@ interface Candidate {
   score: number;
 }
 
+type Recommendation = MovieResult | TvResult;
+
 const key = (mediaType: MediaType, tmdbId: number) => `${mediaType}-${tmdbId}`;
 
-// The user's latest requests plus the newest downloaded media.
+// Ranked lists per user and language. Pages of one slider share a list, and
+// concurrent requests share one computation.
+const cache = new Map<
+  string,
+  { expires: number; ranked: Promise<Recommendation[]> }
+>();
+
+// The user's latest requests plus the newest downloaded media, 4K included.
 export const getRecommendationSeeds = async (user: User): Promise<Seed[]> => {
   const requests = await getRepository(MediaRequest).find({
     where: { requestedBy: { id: user.id } },
@@ -38,9 +51,7 @@ export const getRecommendationSeeds = async (user: User): Promise<Seed[]> => {
     take: SEEDS_PER_SOURCE,
   });
   const library = await getRepository(Media).find({
-    where: {
-      status: In([MediaStatus.AVAILABLE, MediaStatus.PARTIALLY_AVAILABLE]),
-    },
+    where: [{ status: In(DOWNLOADED) }, { status4k: In(DOWNLOADED) }],
     order: { mediaAddedAt: 'DESC', id: 'DESC' },
     take: SEEDS_PER_SOURCE,
   });
@@ -57,18 +68,19 @@ export const getRecommendationSeeds = async (user: User): Promise<Seed[]> => {
   return [...seeds.values()];
 };
 
-// Ranks titles by how many seeds TMDB recommends them for, then by
-// popularity, and drops anything already requested, downloaded or blocklisted.
-export const getRecommendations = async (
+// A title with any media record, in either quality, has been requested,
+// downloaded, removed or blocklisted, so it is not a recommendation.
+const isUntouched = (media?: Media) =>
+  !media ||
+  (media.status === MediaStatus.UNKNOWN &&
+    media.status4k === MediaStatus.UNKNOWN);
+
+// Ranks titles by how many seeds TMDB recommends them for, then by popularity.
+const rankRecommendations = async (
   user: User,
   tmdb: TheMovieDb,
-  { page = 1, language }: { page?: number; language?: string } = {}
-): Promise<{
-  page: number;
-  totalPages: number;
-  totalResults: number;
-  results: (MovieResult | TvResult)[];
-}> => {
+  language?: string
+): Promise<Recommendation[]> => {
   const seeds = await getRecommendationSeeds(user);
   const candidates = new Map<string, Candidate>();
 
@@ -83,7 +95,12 @@ export const getRecommendations = async (
               })
             : await tmdb.getTvRecommendations({ tvId: seed.tmdbId, language });
         return { mediaType: seed.mediaType, results: data.results };
-      } catch {
+      } catch (e) {
+        logger.debug('Failed to fetch TMDB recommendations for a seed', {
+          label: 'Recommendations',
+          seed,
+          errorMessage: e.message,
+        });
         return { mediaType: seed.mediaType, results: [] };
       }
     })
@@ -114,20 +131,42 @@ export const getRecommendations = async (
   const mediaFor = (c: Candidate) =>
     media.find((m) => m.tmdbId === c.result.id && m.mediaType === c.mediaType);
 
-  const ranked = [...candidates.values()]
-    .filter((c) => {
-      const status = mediaFor(c)?.status;
-      return (
-        status === undefined ||
-        status === MediaStatus.UNKNOWN ||
-        status === MediaStatus.DELETED
-      );
-    })
+  return [...candidates.values()]
+    .filter((c) => isUntouched(mediaFor(c)))
     .sort(
       (a, b) =>
         b.score - a.score ||
         (b.result.popularity ?? 0) - (a.result.popularity ?? 0)
+    )
+    .map((c) =>
+      c.mediaType === MediaType.MOVIE
+        ? mapMovieResult(c.result as TmdbMovieResult, mediaFor(c))
+        : mapTvResult(c.result as TmdbTvResult, mediaFor(c))
     );
+};
+
+export const getRecommendations = async (
+  user: User,
+  tmdb: TheMovieDb,
+  { page = 1, language }: { page?: number; language?: string } = {}
+): Promise<{
+  page: number;
+  totalPages: number;
+  totalResults: number;
+  results: Recommendation[];
+}> => {
+  const cacheKey = `${user.id}:${language ?? ''}`;
+  const now = Date.now();
+  let entry = cache.get(cacheKey);
+  if (!entry || entry.expires <= now) {
+    entry = {
+      expires: now + CACHE_TTL_MS,
+      ranked: rankRecommendations(user, tmdb, language),
+    };
+    cache.set(cacheKey, entry);
+    entry.ranked.catch(() => cache.delete(cacheKey));
+  }
+  const ranked = await entry.ranked;
 
   const currentPage = Math.max(1, Math.floor(page));
   const start = (currentPage - 1) * RECOMMENDATIONS_PAGE_SIZE;
@@ -136,12 +175,8 @@ export const getRecommendations = async (
     page: currentPage,
     totalPages: Math.ceil(ranked.length / RECOMMENDATIONS_PAGE_SIZE),
     totalResults: ranked.length,
-    results: ranked
-      .slice(start, start + RECOMMENDATIONS_PAGE_SIZE)
-      .map((c) =>
-        c.mediaType === MediaType.MOVIE
-          ? mapMovieResult(c.result as TmdbMovieResult, mediaFor(c))
-          : mapTvResult(c.result as TmdbTvResult, mediaFor(c))
-      ),
+    results: ranked.slice(start, start + RECOMMENDATIONS_PAGE_SIZE),
   };
 };
+
+export const clearRecommendationsCache = (): void => cache.clear();

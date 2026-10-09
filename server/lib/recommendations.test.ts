@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { describe, it } from 'node:test';
+import { beforeEach, describe, it } from 'node:test';
 
 import TheMovieDb from '@server/api/themoviedb';
 import type { TmdbMovieDetails } from '@server/api/themoviedb/interfaces';
@@ -12,7 +12,10 @@ import { getRepository } from '@server/datasource';
 import Media from '@server/entity/Media';
 import { MediaRequest } from '@server/entity/MediaRequest';
 import { User } from '@server/entity/User';
-import { getRecommendations } from '@server/lib/recommendations';
+import {
+  clearRecommendationsCache,
+  getRecommendations,
+} from '@server/lib/recommendations';
 import { setupTestDb } from '@server/test/db';
 
 setupTestDb();
@@ -48,17 +51,29 @@ const movie = (id: number, popularity = 1) => ({
 });
 
 // TMDB recommendations per seed tmdbId.
+let tmdbCalls = 0;
+const recommendationsFor: Record<number, ReturnType<typeof movie>[]> = {
+  10: [
+    movie(500, 5),
+    movie(600, 50),
+    movie(700),
+    movie(20),
+    movie(900),
+    movie(950),
+  ],
+  20: [movie(500, 5), movie(800)],
+};
 const tmdb = {
-  getMovieRecommendations: async ({ movieId }: { movieId: number }) => ({
-    page: 1,
-    total_pages: 1,
-    total_results: 3,
-    results:
-      {
-        10: [movie(500, 5), movie(600, 50), movie(700), movie(20)],
-        20: [movie(500, 5), movie(800)],
-      }[movieId] ?? [],
-  }),
+  getMovieRecommendations: async ({ movieId }: { movieId: number }) => {
+    tmdbCalls++;
+    const results = recommendationsFor[movieId] ?? [];
+    return {
+      page: 1,
+      total_pages: 1,
+      total_results: results.length,
+      results,
+    };
+  },
   getTvRecommendations: async () => {
     throw new Error('TMDB unavailable');
   },
@@ -84,12 +99,26 @@ async function seed() {
   );
   await save(20, MediaType.MOVIE, MediaStatus.AVAILABLE);
   await save(30, MediaType.TV, MediaStatus.AVAILABLE);
-  // Already blocklisted, so never recommended.
+  // Blocklisted, requested in 4K only, and downloaded then removed.
   await save(700, MediaType.MOVIE, MediaStatus.BLOCKLISTED);
+  await getRepository(Media).save(
+    new Media({
+      tmdbId: 900,
+      mediaType: MediaType.MOVIE,
+      status: MediaStatus.UNKNOWN,
+      status4k: MediaStatus.PENDING,
+    })
+  );
+  await save(950, MediaType.MOVIE, MediaStatus.DELETED);
   return user;
 }
 
 describe('getRecommendations', () => {
+  beforeEach(() => {
+    clearRecommendationsCache();
+    tmdbCalls = 0;
+  });
+
   it('ranks by how many seeds recommend a title, then popularity', async () => {
     const user = await seed();
 
@@ -101,6 +130,17 @@ describe('getRecommendations', () => {
     );
     assert.strictEqual(res.totalResults, 3);
     assert.strictEqual(res.totalPages, 1);
+  });
+
+  it('reuses the ranked list for later pages', async () => {
+    const user = await seed();
+
+    await getRecommendations(user, tmdb);
+    const callsAfterFirst = tmdbCalls;
+    const page2 = await getRecommendations(user, tmdb, { page: 2 });
+
+    assert.strictEqual(tmdbCalls, callsAfterFirst);
+    assert.deepStrictEqual(page2.results, []);
   });
 
   it('returns an empty page for a user with nothing to go on', async () => {
