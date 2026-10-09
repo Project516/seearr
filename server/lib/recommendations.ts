@@ -98,12 +98,13 @@ const genreBoost = (candidates: Candidate[]) => {
 const releaseDate = (r: Recommendation) =>
   r.mediaType === 'movie' ? r.releaseDate : r.firstAirDate;
 
+// TMDB dates are YYYY-MM-DD, so string comparison orders them by day.
 const isRecent = (r: Recommendation, now: number) => {
-  const released = Date.parse(releaseDate(r) ?? '');
+  const released = releaseDate(r) ?? '';
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10);
   return (
-    !Number.isNaN(released) &&
-    released <= now &&
-    released >= now - RECENT_DAYS * 24 * 60 * 60 * 1000
+    released <= day(now) &&
+    released >= day(now - RECENT_DAYS * 24 * 60 * 60 * 1000)
   );
 };
 

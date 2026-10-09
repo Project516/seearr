@@ -106,8 +106,9 @@ test('recommendations are empty until the user has requests or a library', async
   const sliders = await page.request.get('/api/v1/settings/discover');
   expect(sliders.ok()).toBeTruthy();
   expect(
-    (await sliders.json()).filter((s: { type: number }) =>
-      [1001, 1002].includes(s.type)
-    )
-  ).toHaveLength(2);
+    (await sliders.json())
+      .map((s: { type: number }) => s.type)
+      .filter((type: number) => type > 1000)
+      .sort()
+  ).toEqual([1001, 1002]);
 });
