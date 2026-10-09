@@ -1,4 +1,5 @@
 import Badge from '@app/components/Common/Badge';
+import SourceLink from '@app/components/Layout/SourceLink';
 import VersionStatus from '@app/components/Layout/VersionStatus';
 import useClickOutside from '@app/hooks/useClickOutside';
 import { Permission, useUser } from '@app/hooks/useUser';
@@ -247,6 +248,10 @@ const Sidebar = ({
                         <VersionStatus onClick={() => setClosed()} />
                       </div>
                     )}
+                    <SourceLink
+                      className="mx-6 mt-3 self-start"
+                      onClick={() => setClosed()}
+                    />
                   </div>
                 </div>
                 <div className="w-14 flex-shrink-0">
@@ -337,6 +342,7 @@ const Sidebar = ({
                   <VersionStatus />
                 </div>
               )}
+              <SourceLink className="mx-6 mt-3 self-start" />
             </div>
           </div>
         </div>

@@ -3,7 +3,7 @@
 </p>
 <p align="center">
 <a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr--team%2Fseerr-blue" alt="Based on"></a>
-<a href="https://github.com/Project516/seearr/blob/master/LICENSE"><img alt="GitHub" src="https://img.shields.io/github/license/seerr-team/seerr"></a>
+<a href="https://github.com/Project516/seearr/blob/master/LICENSE"><img alt="License: AGPL-3.0" src="https://img.shields.io/github/license/Project516/seearr"></a>
 </p>
 
 **Seearr** is a fork of [Seerr](https://github.com/seerr-team/seerr) stripped down to a **Radarr/Sonarr-only media request manager**. No Plex, no Jellyfin, no Emby. Discover new media via TMDb and add it to your *arr services.
@@ -134,3 +134,11 @@ Each new stable Seerr release arrives as a pull request that a daily workflow op
 ## Upstream
 
 This project is a fork of [seerr-team/seerr](https://github.com/seerr-team/seerr). All credits to the original Seerr team.
+
+## License
+
+Seearr as a whole is licensed under the [GNU Affero General Public License v3.0 only](LICENSE) (AGPL-3.0-only). The fork's own changes are available only under that license.
+
+The code that comes from Seerr stays under the [MIT License](LICENSE-MIT), copyright (c) 2020 sct, and you can still use those parts under MIT. Keep `LICENSE-MIT` with any copy of Seearr.
+
+If you run a modified Seearr for other people over a network, the AGPL requires you to offer them the source of your version. The "Source code" links in the sidebar and on Settings > About point at this repository. Change `SOURCE_URL` in `src/components/Layout/SourceLink/index.tsx` to point them at yours.
