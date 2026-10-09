@@ -53,12 +53,13 @@ test('admin pages load after sign-in', async ({ page }) => {
     '/requests',
   ]) {
     const errors: string[] = [];
-    page.on('pageerror', (e) => errors.push(e.message));
+    const onError = (e: Error) => errors.push(e.message);
+    page.on('pageerror', onError);
     const res = await page.goto(path);
     expect(res?.status(), path).toBeLessThan(400);
-    await expect(page, path).toHaveURL(new RegExp(path));
+    await expect(page, path).toHaveURL(new RegExp(`${path}(\\?|$)`));
     await expect(page.locator('main')).toBeVisible();
     expect(errors, path).toEqual([]);
-    page.removeAllListeners('pageerror');
+    page.off('pageerror', onError);
   }
 });
