@@ -95,6 +95,8 @@ git merge upstream/develop
 
 - TMDb-powered discovery (trending, popular, genres, upcoming)
 - Radarr & Sonarr integration (add movies/TV to download queue)
+- Library page listing everything Radarr and Sonarr have downloaded
+- Personal "Recommended For You" and "New For You" rows based on your requests and library
 - SQLite & PostgreSQL support
 - Customizable request system (per-season or full)
 - Granular permission system

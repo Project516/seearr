@@ -15,6 +15,8 @@ This is a fork of [Seerr](https://github.com/seerr-team/seerr) that removes Plex
 
 - **Discover via TMDb**. Browse and search movies and TV shows from The Movie Database.
 - **Integrates with Radarr and Sonarr**. Send requests directly to your *arr services.
+- **Library** of everything Radarr and Sonarr have downloaded, filterable by type.
+- **Recommended For You** and **New For You** rows, built from each user's requests and the library.
 - **No media server required**. Lightweight and focused on request management.
 - Supports Movies and TV Shows.
 - Optionally set **Override rules** for requests to match with your defined conditions.
