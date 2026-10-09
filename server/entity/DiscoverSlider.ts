@@ -6,6 +6,7 @@ import { DbAwareColumn, resolveDbType } from '@server/utils/DbColumnHelper';
 import {
   Column,
   Entity,
+  MoreThanOrEqual,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -27,6 +28,12 @@ class DiscoverSlider {
           label: 'Discover Slider',
           slider,
         });
+        // Make room so a slider added by an update gets its own position.
+        await sliderRepository.increment(
+          { order: MoreThanOrEqual(slider.order ?? 0) },
+          'order',
+          1
+        );
         await sliderRepository.save(new DiscoverSlider(slider));
       }
     }
