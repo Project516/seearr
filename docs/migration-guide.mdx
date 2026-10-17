@@ -9,8 +9,8 @@ import TabItem from '@theme/TabItem';
 Read our [release announcement](/blog/seerr-release) to learn what Seerr means for Jellyseerr and Overseerr users.
 :::
 
-Whether you come from Overseerr or Jellyseerr, you don't need to perform any manual migration steps, your instance will automatically be migrated to Seerr.
-This migration will run automatically the first time you start your instance using the Seerr codebase (Docker image or source build).
+Whether you come from Overseerr or Jellyseerr, you don't need to perform any manual migration steps, your instance will automatically be migrated to Seearr.
+This migration will run automatically the first time you start your instance using the Seearr codebase (Docker image or source build).
 An additional migration will happen for Overseerr users, to migrate their configuration to the new codebase.
 
 :::danger
@@ -19,12 +19,12 @@ See [Backups](/using-seerr/backups) for details on how to properly backup your i
 :::
 
 ## Docker
-Refer to [Seerr Docker Documentation](/getting-started/docker), all of our examples have been updated to reflect the below change.
+Refer to [Seearr Docker Documentation](/getting-started/docker), all of our examples have been updated to reflect the below change.
 
 :::info
-Seerr provides a secure, fully featured image with everything you need included.
+Seearr provides a secure, fully featured image with everything you need included.
 We sincerely appreciate the past contributions from third-party maintainers, which helped enhance this image and its capabilities.
-To maintain consistency and security, we encourage everyone to use the features available in the official Seerr image.
+To maintain consistency and security, we encourage everyone to use the features available in the official Seearr image.
 If you feel something is missing, please submit a feature request. Your feedback is always welcome!
 
 Our Docker images are available with the following tags:
@@ -64,10 +64,10 @@ Summary of changes :
   ```yaml {3-6}
   ---
   services:
-    seerr:
+    seearr:
       image: ghcr.io/project516/seearr:latest
       init: true
-      container_name: seerr
+      container_name: seearr
       environment:
         - LOG_LEVEL=debug
         - TZ=Asia/Tashkent
@@ -88,7 +88,7 @@ Summary of changes :
   <TabItem value="docker-cli" label="Docker CLI">
   ```bash {2-3,10}
   docker run -d \
-    --name seerr \
+    --name seearr \
     --init \
     -e LOG_LEVEL=debug \
     -e TZ=Asia/Tashkent \
@@ -109,17 +109,17 @@ Summary of changes :
   ```yaml {3-6,13,23}
   ---
   services:
-    seerr:
+    seearr:
       image: ghcr.io/project516/seearr:latest
       init: true
-      container_name: seerr
+      container_name: seearr
       environment:
         - LOG_LEVEL=debug
         - TZ=Asia/Tashkent
       ports:
         - 5055:5055
       volumes:
-        - seerr-data:/app/config
+        - seearr-data:/app/config
       healthcheck:
         test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
         start_period: 20s
@@ -129,20 +129,20 @@ Summary of changes :
       restart: unless-stopped
 
   volumes:
-    seerr-data:
+    seearr-data:
       external: true
   ```
   </TabItem>
   <TabItem value="docker-cli" label="Docker CLI (PowerShell)">
   ```powershell {2-3,8,10}
   docker run -d `
-    --name seerr `
+    --name seearr `
     --init `
     -e LOG_LEVEL=debug `
     -e TZ=Asia/Tashkent `
     -e PORT=5055 `
     -p 5055:5055 `
-    -v seerr-data:/app/config `
+    -v seearr-data:/app/config `
     --restart unless-stopped `
     ghcr.io/project516/seearr:latest
   ```
@@ -151,13 +151,13 @@ Summary of changes :
   <TabItem value="docker-cli-cmd" label="Docker CLI (CMD)">
   ```batch {2-3,8,10}
   docker run -d ^
-    --name seerr ^
+    --name seearr ^
     --init ^
     -e LOG_LEVEL=debug ^
     -e TZ=Asia/Tashkent ^
     -e PORT=5055 ^
     -p 5055:5055 ^
-    -v seerr-data:/app/config ^
+    -v seearr-data:/app/config ^
     --restart unless-stopped ^
     ghcr.io/project516/seearr:latest
   ```
@@ -166,6 +166,6 @@ Summary of changes :
 
 
 ## Build From Source
-Refer to [Seerr Build From Source Documentation](/getting-started/buildfromsource), all of our examples have been updated to reflect the below change.
+Refer to [Seearr Build From Source Documentation](/getting-started/buildfromsource), all of our examples have been updated to reflect the below change.
 
-Install from scratch by following the documentation, restore your data as described in [Backups](/using-seerr/backups), and then start Seerr. No additional steps are required.
+Install from scratch by following the documentation, restore your data as described in [Backups](/using-seerr/backups), and then start Seearr. No additional steps are required.

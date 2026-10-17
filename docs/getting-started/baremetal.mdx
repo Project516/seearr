@@ -65,13 +65,13 @@ Set `NO_BROWSER=1` to skip the browser launch, which is useful over SSH or in sc
 
 To run Seearr as a background service on Linux:
 
-1. Create the environment file at `/etc/seearr/seerr.conf`:
+1. Create the environment file at `/etc/seearr/seearr.conf`:
 ```bash
 PORT=5055
 #HOST=127.0.0.1
 ```
 
-2. Create the systemd service file at `/etc/systemd/system/seerr.service`:
+2. Create the systemd service file at `/etc/systemd/system/seearr.service`:
 ```ini
 [Unit]
 Description=Seearr Service
@@ -79,7 +79,7 @@ Wants=network-online.target
 After=network-online.target
 
 [Service]
-EnvironmentFile=/etc/seearr/seerr.conf
+EnvironmentFile=/etc/seearr/seearr.conf
 Environment=NODE_ENV=production
 Type=exec
 Restart=on-failure
@@ -92,8 +92,8 @@ WantedBy=multi-user.target
 
 3. Enable and start:
 ```bash
-sudo systemctl enable seerr
-sudo systemctl start seerr
+sudo systemctl enable seearr
+sudo systemctl start seearr
 ```
 
 ### Updating
@@ -110,5 +110,5 @@ With the systemd service, rebuild and restart instead:
 ```bash
 git pull
 ./setup.sh
-sudo systemctl restart seerr
+sudo systemctl restart seearr
 ```
