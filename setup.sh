@@ -32,7 +32,7 @@ check_prereqs() {
 
   # Use the pinned pnpm from a local copy: a global pnpm of another major
   # can fail or hang trying to switch to the pinned version.
-  PNPM_VER=$(node -p "require('$APP_DIR/package.json').packageManager.split('@')[1].split('+')[0]")
+  PNPM_VER=$(node -p 'require(process.argv[1]).packageManager.split("@")[1].split("+")[0]' "$APP_DIR/package.json")
   PNPM_DIR="$APP_DIR/.tools/pnpm"
   if [ "$("$PNPM_DIR/bin/pnpm" -v 2>/dev/null)" != "$PNPM_VER" ]; then
     info "  Downloading pnpm $PNPM_VER into .tools/..."
