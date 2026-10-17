@@ -30,17 +30,22 @@ check_prereqs() {
   fi
   info "  Node.js $(node -v) [ok]"
 
-  if ! command -v pnpm &>/dev/null; then
-    warn "pnpm not found. Installing via corepack..."
-    corepack enable 2>/dev/null || true
-    pnpm --version &>/dev/null || npm install -g pnpm 2>/dev/null || {
-      warn "Could not install pnpm automatically."
-      warn "Install it manually: corepack enable && pnpm setup"
-      warn "Or: npm install -g pnpm"
-      exit 1
-    }
+  # Use the pinned pnpm from a local copy: a global pnpm of another major
+  # can fail or hang trying to switch to the pinned version.
+  PNPM_VER=$(node -p 'require(process.argv[1]).packageManager.split("@")[1].split("+")[0]' "$APP_DIR/package.json")
+  PNPM_DIR="$APP_DIR/.tools/pnpm"
+  if [ "$("$PNPM_DIR/bin/pnpm" -v 2>/dev/null)" != "$PNPM_VER" ]; then
+    info "  Downloading pnpm $PNPM_VER into .tools/..."
+    rm -rf "$PNPM_DIR" && mkdir -p "$PNPM_DIR/bin"
+    curl -fsSL "https://registry.npmjs.org/pnpm/-/pnpm-$PNPM_VER.tgz" \
+      | tar -xz -C "$PNPM_DIR" --strip-components=1 \
+      || error "Could not download pnpm $PNPM_VER."
+    printf '#!/bin/sh\nexec node "$(dirname "$0")/pnpm.cjs" "$@"\n' > "$PNPM_DIR/bin/pnpm"
+    chmod +x "$PNPM_DIR/bin/pnpm"
   fi
-  info "  pnpm $(pnpm -v) [ok]"
+  export PATH="$PNPM_DIR/bin:$PATH"
+  [ "$(pnpm -v 2>/dev/null)" = "$PNPM_VER" ] || error "pnpm $PNPM_VER in .tools/ does not run."
+  info "  pnpm $PNPM_VER [ok]"
 }
 
 # ─────────────────────────────────────────────────────────
