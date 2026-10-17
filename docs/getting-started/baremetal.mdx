@@ -14,7 +14,7 @@ Seearr is a lightweight media request manager for **Radarr and Sonarr**. It does
 ### Prerequisites
 
 - [Node.js 22.x](https://nodejs.org/en/download/) or newer (including Node 24+)
-- [pnpm 10.x](https://pnpm.io/installation)
+- curl and tar (`setup.sh` downloads the pinned pnpm into `.tools/`)
 - [Git](https://git-scm.com/downloads)
 - Running instances of [Radarr](https://radarr.video/) and/or [Sonarr](https://sonarr.tv/)
 
@@ -46,7 +46,7 @@ Seearr will be available at `http://localhost:5055` in your web browser.
 
 The setup script handles everything automatically:
 
-1. Checks for Node.js 22+ and pnpm
+1. Checks for Node.js 22+ and downloads the pnpm version pinned in `package.json`
 2. Installs all dependencies
 3. Builds the project
 4. Creates a default `config/settings.json`
