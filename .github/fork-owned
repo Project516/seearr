@@ -1,6 +1,7 @@
 # Paths the fork maintains itself. On an upstream sync conflict, these keep the
 # fork's version. One git pathspec per line.
 README.md
+public/logo_full_light.svg
 CONTRIBUTING.md
 SECURITY.md
 CODE_OF_CONDUCT.md

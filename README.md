@@ -1,5 +1,8 @@
 <p align="center">
-<img src="./public/logo_full.svg" alt="Seearr" style="margin: 20px 0;">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="./public/logo_full.svg">
+<img src="./public/logo_full_light.svg" alt="Seearr" style="margin: 20px 0;">
+</picture>
 </p>
 <p align="center">
 <a href="https://github.com/seerr-team/seerr"><img src="https://img.shields.io/badge/upstream-seerr--team%2Fseerr-blue" alt="Based on"></a>
