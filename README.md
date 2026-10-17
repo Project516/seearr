@@ -40,7 +40,7 @@ The Library page lists every movie and series Radarr and Sonarr have downloaded,
 
 ## Getting Started
 
-You need Node.js 22+, curl, and Radarr or Sonarr. On bare metal:
+You need Node.js 22+, curl, tar, and Radarr or Sonarr. On bare metal:
 
 ```bash
 git clone https://github.com/Project516/seearr.git

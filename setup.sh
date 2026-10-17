@@ -40,11 +40,12 @@ check_prereqs() {
     curl -fsSL "https://registry.npmjs.org/pnpm/-/pnpm-$PNPM_VER.tgz" \
       | tar -xz -C "$PNPM_DIR" --strip-components=1 \
       || error "Could not download pnpm $PNPM_VER."
-    printf '#!/bin/sh\nexec node "%s/bin/pnpm.cjs" "$@"\n' "$PNPM_DIR" > "$PNPM_DIR/bin/pnpm"
+    printf '#!/bin/sh\nexec node "$(dirname "$0")/pnpm.cjs" "$@"\n' > "$PNPM_DIR/bin/pnpm"
     chmod +x "$PNPM_DIR/bin/pnpm"
   fi
   export PATH="$PNPM_DIR/bin:$PATH"
-  info "  pnpm $(pnpm -v) [ok]"
+  [ "$(pnpm -v 2>/dev/null)" = "$PNPM_VER" ] || error "pnpm $PNPM_VER in .tools/ does not run."
+  info "  pnpm $PNPM_VER [ok]"
 }
 
 # ─────────────────────────────────────────────────────────
