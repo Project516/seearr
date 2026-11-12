@@ -24,6 +24,10 @@ interface ScheduledJob {
 export const scheduledJobs: ScheduledJob[] = [];
 
 export const startJobs = (): void => {
+  // Reruns once a media server is set after boot
+  scheduledJobs.forEach((scheduledJob) => scheduledJob.job.cancel());
+  scheduledJobs.length = 0;
+
   const jobs = getSettings().jobs;
 
   // Run full radarr scan every 24 hours
@@ -116,6 +120,7 @@ export const startJobs = (): void => {
       });
       // Clean TMDB image cache
       ImageProxy.clearCache('tmdb');
+      ImageProxy.clearCache('tvdb');
 
       // Clean users avatar image cache
       ImageProxy.clearCache('avatar');

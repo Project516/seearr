@@ -1,4 +1,4 @@
-FROM node:22.23.4-alpine3.23@sha256:206878a60dc7014193f418ab9259b6110c15fbd514b3044a267be706509944e4 AS base
+FROM node:22.23.5-alpine3.23@sha256:6868d4695b947ee120bffaa463fecd68cde370d7bfec92955e7c8ac576b4f475 AS base
 ARG SOURCE_DATE_EPOCH
 
 ENV PNPM_HOME="/pnpm"
@@ -28,7 +28,7 @@ RUN apk add --no-cache python3 make g++ gcc libc6-compat bash && \
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store CYPRESS_INSTALL_BINARY=0 pnpm install --frozen-lockfile
 RUN pnpm build && rm -rf .next/cache
 
-FROM node:22.23.4-alpine3.23@sha256:206878a60dc7014193f418ab9259b6110c15fbd514b3044a267be706509944e4
+FROM node:22.23.5-alpine3.23@sha256:6868d4695b947ee120bffaa463fecd68cde370d7bfec92955e7c8ac576b4f475
 ARG SOURCE_DATE_EPOCH
 ARG COMMIT_TAG
 ENV NODE_ENV=production
@@ -38,9 +38,27 @@ RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
-COPY --chown=node:node . .
-COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/.next ./.next
+COPY --chown=node:node --exclude=src --exclude=server . .
+# @next/swc is only for next build and for next.config.ts
+# ts-node, @swc/core, and typescript are only needed for build-time type checking and compilation
+# ace-builds, country-flag-icons and @heroicons subfolders are large module files not needed for production
+# Source map files are not needed for production
+# Remove large module files not needed for production
+COPY --chown=node:node --from=prod-deps \
+  --exclude=.pnpm/@next+swc-* \
+  --exclude=.pnpm/@swc+core* \
+  --exclude=.pnpm/ts-node@* \
+  --exclude=.pnpm/typescript@* \
+  --exclude=**/ace-builds/src-noconflict \
+  --exclude=**/ace-builds/src \
+  --exclude=**/ace-builds/src-min \
+  --exclude=**/country-flag-icons/react \
+  --exclude=**/country-flag-icons/string \
+  --exclude=**/country-flag-icons/1x1 \
+  --exclude=**/@heroicons/react/16 \
+  --exclude=**/*.map \
+  /app/node_modules ./node_modules
+COPY --chown=node:node --from=build --exclude=cache --exclude=**/*.map /app/.next ./.next
 COPY --chown=node:node --from=build /app/dist ./dist
 
 # config/ may not exist in a clean checkout (its contents are gitignored),

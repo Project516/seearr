@@ -15,7 +15,7 @@ import { ApiError } from '@server/types/error';
 import { isOwnProfileOrAdmin } from '@server/utils/profileMiddleware';
 import { Router } from 'express';
 import { Not } from 'typeorm';
-import { canMakePermissionsChange } from '.';
+import { canMakePermissionsChange, canModifyUser } from '.';
 
 const userSettingsRoutes = Router({ mergeParams: true });
 
@@ -79,6 +79,13 @@ userSettingsRoutes.post<
 
     // "Owner" user settings cannot be modified by other users
     if (user.id === 1 && req.user?.id !== 1) {
+      return next({
+        status: 403,
+        message: "You do not have permission to modify this user's settings.",
+      });
+    }
+
+    if (!canModifyUser(user, req.user)) {
       return next({
         status: 403,
         message: "You do not have permission to modify this user's settings.",
@@ -233,7 +240,7 @@ userSettingsRoutes.post<
 
     // If the user has a password, we need to check the currentPassword is correct
     if (
-      user.password &&
+      userWithPassword.password &&
       (!req.body.currentPassword ||
         !(await userWithPassword.passwordMatch(req.body.currentPassword)))
     ) {
@@ -314,6 +321,13 @@ userSettingsRoutes.post<{ id: string }, UserSettingsNotificationsResponse>(
 
       // "Owner" user settings cannot be modified by other users
       if (user.id === 1 && req.user?.id !== 1) {
+        return next({
+          status: 403,
+          message: "You do not have permission to modify this user's settings.",
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
         return next({
           status: 403,
           message: "You do not have permission to modify this user's settings.",
@@ -418,6 +432,13 @@ userSettingsRoutes.post<
 
       // "Owner" user permissions cannot be modified, and users cannot set their own permissions
       if (user.id === 1 || req.user?.id === user.id) {
+        return next({
+          status: 403,
+          message: 'You do not have permission to modify this user',
+        });
+      }
+
+      if (!canModifyUser(user, req.user)) {
         return next({
           status: 403,
           message: 'You do not have permission to modify this user',
