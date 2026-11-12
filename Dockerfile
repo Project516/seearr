@@ -38,9 +38,27 @@ RUN apk add --no-cache tzdata
 
 WORKDIR /app
 
-COPY --chown=node:node . .
-COPY --chown=node:node --from=prod-deps /app/node_modules ./node_modules
-COPY --chown=node:node --from=build /app/.next ./.next
+COPY --chown=node:node --exclude=src --exclude=server . .
+# @next/swc is only for next build and for next.config.ts
+# ts-node, @swc/core, and typescript are only needed for build-time type checking and compilation
+# ace-builds, country-flag-icons and @heroicons subfolders are large module files not needed for production
+# Source map files are not needed for production
+# Remove large module files not needed for production
+COPY --chown=node:node --from=prod-deps \
+  --exclude=.pnpm/@next+swc-* \
+  --exclude=.pnpm/@swc+core* \
+  --exclude=.pnpm/ts-node@* \
+  --exclude=.pnpm/typescript@* \
+  --exclude=**/ace-builds/src-noconflict \
+  --exclude=**/ace-builds/src \
+  --exclude=**/ace-builds/src-min \
+  --exclude=**/country-flag-icons/react \
+  --exclude=**/country-flag-icons/string \
+  --exclude=**/country-flag-icons/1x1 \
+  --exclude=**/@heroicons/react/16 \
+  --exclude=**/*.map \
+  /app/node_modules ./node_modules
+COPY --chown=node:node --from=build --exclude=cache --exclude=**/*.map /app/.next ./.next
 COPY --chown=node:node --from=build /app/dist ./dist
 
 # config/ may not exist in a clean checkout (its contents are gitignored),
