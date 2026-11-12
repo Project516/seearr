@@ -1,8 +1,10 @@
 import assert from 'node:assert/strict';
 import { before, beforeEach, describe, it, mock } from 'node:test';
 
+import * as schedule from '@server/job/schedule';
 import PreparedEmail from '@server/lib/email';
 
+const startJobsMock = mock.method(schedule, 'startJobs', () => undefined).mock;
 const emailMock = mock.method(PreparedEmail.prototype, 'send', async () => {
   return undefined;
 }).mock;
@@ -423,5 +425,31 @@ describe('POST /auth/reset-password/:guid', () => {
       .post(`/auth/reset-password/${guid}`)
       .send({ password: 'anotherpassword' });
     assert.strictEqual(second.status, 500);
+  });
+});
+
+describe('POST /auth/setup', () => {
+  beforeEach(async () => {
+    await getRepository(User).clear();
+    startJobsMock.resetCalls();
+  });
+
+  it('creates the first admin and starts the scheduled jobs', async () => {
+    const res = await request(app)
+      .post('/auth/setup')
+      .send({ email: 'owner@example.com', password: 'password123' });
+
+    assert.strictEqual(res.status, 200);
+    assert.strictEqual(await getRepository(User).count(), 1);
+    assert.strictEqual(startJobsMock.callCount(), 1);
+  });
+
+  it('does not start the jobs when setup is rejected', async () => {
+    const res = await request(app)
+      .post('/auth/setup')
+      .send({ email: 'owner@example.com', password: 'short' });
+
+    assert.strictEqual(res.status, 400);
+    assert.strictEqual(startJobsMock.callCount(), 0);
   });
 });

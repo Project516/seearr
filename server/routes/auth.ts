@@ -1,6 +1,7 @@
 import { UserType } from '@server/constants/user';
 import { getRepository } from '@server/datasource';
 import { User } from '@server/entity/User';
+import { startJobs } from '@server/job/schedule';
 import { Permission } from '@server/lib/permissions';
 import { getSettings } from '@server/lib/settings';
 import logger from '@server/logger';
@@ -88,6 +89,9 @@ authRoutes.post('/setup', async (req, res) => {
 
     settings.main.localLogin = true;
     await settings.save();
+
+    // Boot skips the jobs while there are no users
+    startJobs();
 
     // Set logged in session
     if (req.session) {
